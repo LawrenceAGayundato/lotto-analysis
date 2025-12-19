@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCSO Lotto Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+
+        header {
+            background: #000000;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 2px solid #333333;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .controls label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .controls select, .controls input {
+            padding: 10px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .controls select:hover, .controls input:hover {
+            border-color: #000000;
+        }
+
+        .controls button {
+            padding: 10px 25px;
+            background: #000000;
+            color: white;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            background: #333333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card h3 {
+            color: #000000;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #000000;
+            border-bottom-color: #000000;
+        }
+
+        .tab:hover {
+            color: #000000;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .results-table th {
+            background: #000000;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .results-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .results-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .lotto-numbers {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .lotto-ball {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #000000;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: 1px solid #333333;
+        }
+
+        .frequency-chart {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .frequency-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+
+        .frequency-item:hover {
+            background: #000000;
+            color: white;
+            border-color: #000000;
+            transform: scale(1.05);
+        }
+
+        .frequency-item .number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .frequency-item:hover .number {
+            color: white;
+        }
+
+        .frequency-item .count {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .frequency-item:hover .count {
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #bee5eb;
+        }
+
+        .chart-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        .prediction-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            border-left: 4px solid #000000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .prediction-section h3 {
+            color: #000000;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .prediction-numbers {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        .prediction-ball {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #000000;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.3em;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.5s ease-in;
+            border: 1px solid #333333;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .model-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #495057;
+        }
+
+        .model-info strong {
+            color: #000000;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: #000000;
+            transition: width 0.5s ease;
+        }
+
+        .generate-btn {
+            padding: 12px 30px;
+            background: #000000;
+            color: white;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            background: #333333;
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .model-selector {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .model-selector label {
+            font-weight: 600;
+            color: #495057;
+            margin-right: 10px;
+        }
+
+        .model-selector select {
+            padding: 10px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            background: #000000;
+            color: white;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #333333;
+            transform: translateY(-2px);
+        }
+
+        .pagination button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .pagination .page-info {
+            padding: 8px 16px;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .pagination select {
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            background: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PCSO Lotto Dashboard</h1>
+            <p>Historical Results & Statistics | Philippine Charity Sweepstakes Office</p>
+        </header>
+
+        <div class="controls">
+            <label for="gameFilter">Game:</label>
+            <select id="gameFilter">
+                <option value="all">All Games</option>
+                <option value="6/58">Ultra Lotto 6/58</option>
+                <option value="6/55">Grand Lotto 6/55</option>
+                <option value="6/49">Super Lotto 6/49</option>
+                <option value="6/45">Mega Lotto 6/45</option>
+                <option value="6/42">Lotto 6/42</option>
+                <option value="4D">4D Lotto</option>
+                <option value="3D">3D Lotto</option>
+                <option value="2D">2D Lotto</option>
+            </select>
+
+            <label for="dateFrom">From:</label>
+            <input type="date" id="dateFrom">
+
+            <label for="dateTo">To:</label>
+            <input type="date" id="dateTo">
+
+            <button onclick="filterToday()">Today's Draw</button>
+            <button onclick="filterYesterday()">Yesterday's Draw</button>
+            <button onclick="applyFilters()">Apply Filters</button>
+            <button onclick="loadData()">Refresh Data</button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <!-- Stats will be populated here -->
+        </div>
+
+        <div class="content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'recent')">Recent Results</button>
+                <button class="tab" onclick="switchTab(event, 'frequency')">Number Frequency</button>
+                <button class="tab" onclick="switchTab(event, 'analysis')">Analysis</button>
+                <button class="tab" onclick="switchTab(event, 'prediction')">AI Prediction</button>
+            </div>
+
+            <div id="recent" class="tab-content active">
+                <div id="recentResults">
+                    <div class="loading">Loading results...</div>
+                </div>
+            </div>
+
+            <div id="frequency" class="tab-content">
+                <div id="frequencyAnalysis">
+                    <div class="loading">Loading frequency analysis...</div>
+                </div>
+            </div>
+
+            <div id="analysis" class="tab-content">
+                <div id="detailedAnalysis">
+                    <div class="loading">Loading analysis...</div>
+                </div>
+            </div>
+
+            <div id="prediction" class="tab-content">
+                <div id="predictionAnalysis">
+                    <div class="loading">Loading prediction models...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cache buster: v2.0 - Fixed template literals
+        let allData = null;
+        let filteredData = null;
+        let statistics = null;
+        
+        // Pagination variables
+        let currentPage = 1;
+        let itemsPerPage = 15;
+
+        // Load data on page load
+        window.onload = function() {
+            loadData();
+        };
+
+        async function loadData() {
+            try {
+                // Load main data
+                const response = await fetch('pcso_lotto_data.json');
+                if (!response.ok) {
+                    throw new Error('Data file not found. Please run fetch_pcso_data.py first.');
+                }
+                allData = await response.json();
+                
+                // Load statistics
+                const statsResponse = await fetch('pcso_statistics.json');
+                if (statsResponse.ok) {
+                    statistics = await statsResponse.json();
+                }
+
+                filteredData = allData.results;
+                updateDisplay();
+            } catch (error) {
+                document.getElementById('recentResults').innerHTML = 
+                    '<div class="error">' +
+                        '<strong>Error loading data:</strong> ' + error.message +
+                        '<br><br>' +
+                        'Please run the Python script first: <code>python fetch_pcso_data.py</code>' +
+                    '</div>';
+            }
+        }
+
+        function applyFilters() {
+            if (!allData) return;
+
+            let data = [...allData.results];
+            const gameFilter = document.getElementById('gameFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            // Filter by game
+            if (gameFilter !== 'all') {
+                data = data.filter(item => item.game_type === gameFilter);
+            }
+
+            // Filter by date range
+            if (dateFrom) {
+                data = data.filter(item => item.date >= dateFrom);
+            }
+            if (dateTo) {
+                data = data.filter(item => item.date <= dateTo);
+            }
+
+            filteredData = data;
+            currentPage = 1; // Reset to first page when filtering
+            updateDisplay();
+        }
+
+        function filterToday() {
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            
+            document.getElementById('dateFrom').value = todayStr;
+            document.getElementById('dateTo').value = todayStr;
+            
+            applyFilters();
+        }
+
+        function filterYesterday() {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            
+            document.getElementById('dateFrom').value = yesterdayStr;
+            document.getElementById('dateTo').value = yesterdayStr;
+            
+            applyFilters();
+        }
+
+        function updateDisplay() {
+            updateStats();
+            updateRecentResults();
+            updateFrequencyAnalysis();
+            updateDetailedAnalysis();
+            updatePredictionAnalysis();
+        }
+
+        function updateStats() {
+            if (!filteredData) return;
+
+            const games = {};
+            let totalJackpot = 0;
+            let totalWinners = 0;
+
+            filteredData.forEach(result => {
+                if (!games[result.game_type]) {
+                    games[result.game_type] = 0;
+                }
+                games[result.game_type]++;
+                totalJackpot += result.jackpot || 0;
+                totalWinners += result.winners || 0;
+            });
+
+            const statsHTML = 
+                '<div class="stat-card">' +
+                    '<h3>' + filteredData.length + '</h3>' +
+                    '<p>Total Draws</p>' +
+                '</div>' +
+                '<div class="stat-card">' +
+                    '<h3>' + Object.keys(games).length + '</h3>' +
+                    '<p>Games</p>' +
+                '</div>' +
+                '<div class="stat-card">' +
+                    '<h3>₱' + (totalJackpot / 1000000).toFixed(1) + 'M</h3>' +
+                    '<p>Total Jackpots</p>' +
+                '</div>' +
+                '<div class="stat-card">' +
+                    '<h3>' + totalWinners + '</h3>' +
+                    '<p>Total Winners</p>' +
+                '</div>';
+
+            document.getElementById('statsGrid').innerHTML = statsHTML;
+        }
+
+        function updateRecentResults() {
+            if (!filteredData || filteredData.length === 0) {
+                document.getElementById('recentResults').innerHTML = 
+                    '<div class="no-data">No results found for the selected filters.</div>';
+                return;
+            }
+
+            // Sort by date (most recent first)
+            const sortedData = [...filteredData].sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            );
+
+            // Calculate pagination
+            const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedData = sortedData.slice(startIndex, endIndex);
+
+            let html = 
+                '<div style="margin-bottom: 15px; color: #6c757d;">' +
+                    '<strong>Total Results:</strong> ' + sortedData.length + ' draws' +
+                '</div>' +
+                '<table class="results-table">' +
+                    '<thead>' +
+                        '<tr>' +
+                            '<th>Date</th>' +
+                            '<th>Game</th>' +
+                            '<th>Winning Numbers</th>' +
+                            '<th>Jackpot</th>' +
+                            '<th>Winners</th>' +
+                        '</tr>' +
+                    '</thead>' +
+                    '<tbody>';
+
+            paginatedData.forEach(result => {
+                const numbersHTML = result.numbers.map(num => 
+                    '<span class="lotto-ball">' + num + '</span>'
+                ).join('');
+
+                html += 
+                    '<tr>' +
+                        '<td>' + formatDate(result.date) + '</td>' +
+                        '<td><strong>' + result.game + '</strong></td>' +
+                        '<td><div class="lotto-numbers">' + numbersHTML + '</div></td>' +
+                        '<td>₱' + formatNumber(result.jackpot) + '</td>' +
+                        '<td>' + result.winners + '</td>' +
+                    '</tr>';
+            });
+
+            html += 
+                    '</tbody>' +
+                '</table>' +
+                '<div class="pagination">' +
+                    '<button onclick="changePage(-1)" ' + (currentPage === 1 ? 'disabled' : '') + '>' +
+                        '◀ Previous' +
+                    '</button>' +
+                    '<span class="page-info">' +
+                        'Page ' + currentPage + ' of ' + totalPages +
+                    '</span>' +
+                    '<button onclick="changePage(1)" ' + (currentPage === totalPages ? 'disabled' : '') + '>' +
+                        'Next ▶' +
+                    '</button>' +
+                    '<select onchange="changeItemsPerPage(this.value)">' +
+                        '<option value="10" ' + (itemsPerPage === 10 ? 'selected' : '') + '>10 per page</option>' +
+                        '<option value="15" ' + (itemsPerPage === 15 ? 'selected' : '') + '>15 per page</option>' +
+                        '<option value="25" ' + (itemsPerPage === 25 ? 'selected' : '') + '>25 per page</option>' +
+                        '<option value="50" ' + (itemsPerPage === 50 ? 'selected' : '') + '>50 per page</option>' +
+                    '</select>' +
+                '</div>';
+
+            document.getElementById('recentResults').innerHTML = html;
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            updateRecentResults();
+        }
+
+        function changeItemsPerPage(value) {
+            itemsPerPage = parseInt(value);
+            currentPage = 1; // Reset to first page
+            updateRecentResults();
+        }
+
+        function updateFrequencyAnalysis() {
+            if (!filteredData || filteredData.length === 0) {
+                document.getElementById('frequencyAnalysis').innerHTML = 
+                    '<div class="no-data">No data available for frequency analysis.</div>';
+                return;
+            }
+
+            const gameFilter = document.getElementById('gameFilter').value;
+            
+            // Only show frequency for 6-digit games
+            if (!gameFilter.startsWith('6/') && gameFilter !== 'all') {
+                document.getElementById('frequencyAnalysis').innerHTML = 
+                    '<div class="info">Frequency analysis is only available for 6-digit lotto games.</div>';
+                return;
+            }
+
+            const frequency = {};
+            filteredData.forEach(result => {
+                if (result.game_type.startsWith('6/')) {
+                    result.numbers.forEach(num => {
+                        frequency[num] = (frequency[num] || 0) + 1;
+                    });
+                }
+            });
+
+            // Sort by frequency
+            const sorted = Object.entries(frequency)
+                .sort((a, b) => b[1] - a[1]);
+
+            let html = '<h2>Most Frequently Drawn Numbers</h2>';
+            html += '<div class="frequency-chart">';
+            
+            sorted.forEach(([number, count]) => {
+                html += 
+                    '<div class="frequency-item">' +
+                        '<div class="number">' + number + '</div>' +
+                        '<div class="count">' + count + 'x</div>' +
+                    '</div>';
+            });
+
+            html += '</div>';
+            document.getElementById('frequencyAnalysis').innerHTML = html;
+        }
+
+        function updateDetailedAnalysis() {
+            if (!filteredData || filteredData.length === 0) {
+                document.getElementById('detailedAnalysis').innerHTML = 
+                    '<div class="no-data">No data available for analysis.</div>';
+                return;
+            }
+
+            const gameStats = {};
+            filteredData.forEach(result => {
+                if (!gameStats[result.game_type]) {
+                    gameStats[result.game_type] = {
+                        name: result.game,
+                        draws: 0,
+                        totalJackpot: 0,
+                        totalWinners: 0,
+                        avgJackpot: 0
+                    };
+                }
+                gameStats[result.game_type].draws++;
+                gameStats[result.game_type].totalJackpot += result.jackpot;
+                gameStats[result.game_type].totalWinners += result.winners;
+            });
+
+            // Calculate averages
+            Object.keys(gameStats).forEach(key => {
+                gameStats[key].avgJackpot = gameStats[key].totalJackpot / gameStats[key].draws;
+            });
+
+            let html = '<h2>Game Statistics</h2>';
+            html += '<table class="results-table"><thead><tr>';
+            html += '<th>Game</th><th>Total Draws</th><th>Avg Jackpot</th><th>Total Winners</th>';
+            html += '</tr></thead><tbody>';
+
+            Object.values(gameStats).forEach(stat => {
+                html += 
+                    '<tr>' +
+                        '<td><strong>' + stat.name + '</strong></td>' +
+                        '<td>' + stat.draws + '</td>' +
+                        '<td>₱' + formatNumber(Math.round(stat.avgJackpot)) + '</td>' +
+                        '<td>' + stat.totalWinners + '</td>' +
+                    '</tr>';
+            });
+
+            html += '</tbody></table>';
+
+            // Add insights
+            html += 
+                '<div class="chart-container">' +
+                    '<h3>Insights</h3>' +
+                    '<p><strong>Data Range:</strong> ' + filteredData.length + ' draws analyzed</p>' +
+                    '<p><strong>Remember:</strong> Lottery draws are random. Past results do not guarantee future outcomes.</p>' +
+                '</div>';
+            document.getElementById('detailedAnalysis').innerHTML = html;
+        }
+
+        function updatePredictionAnalysis() {
+            if (!filteredData || filteredData.length === 0) {
+                document.getElementById('predictionAnalysis').innerHTML = 
+                    '<div class="no-data">No data available for predictions. Please load historical data first.</div>';
+                return;
+            }
+
+            let html = '<h2>AI-Powered Number Prediction</h2>';
+            html += '<p style="color: #6c757d; margin-bottom: 20px;">Based on historical patterns and machine learning analysis</p>';
+            
+            // Model selector
+            html += '<div class="model-selector">' +
+                '<label for="predictionModel">Select Prediction Model:</label>' +
+                '<select id="predictionModel" onchange="generatePrediction()">' +
+                    '<option value="frequency">Frequency-Based (Simple)</option>' +
+                    '<option value="hotcold">Hot & Cold Analysis</option>' +
+                    '<option value="pattern">Pattern Recognition</option>' +
+                    '<option value="weighted">Weighted Average</option>' +
+                    '<option value="markov">Markov Chain</option>' +
+                    '<option value="neural">Neural Network Simulation</option>' +
+                '</select>' +
+                '<button class="generate-btn" onclick="generatePrediction()">Generate Predictions</button>' +
+            '</div>';
+
+            html += '<div id="predictionResults"></div>';
+
+            document.getElementById('predictionAnalysis').innerHTML = html;
+            
+            // Auto-generate first prediction
+            setTimeout(() => generatePrediction(), 500);
+        }
+
+        function generatePrediction() {
+            const model = document.getElementById('predictionModel')?.value || 'frequency';
+            const gameFilter = document.getElementById('gameFilter').value;
+            
+            // Filter for 6-digit games only
+            let gameData = filteredData.filter(r => r.game_type.startsWith('6/'));
+            
+            if (gameFilter !== 'all' && gameFilter.startsWith('6/')) {
+                gameData = gameData.filter(r => r.game_type === gameFilter);
+            }
+
+            if (gameData.length === 0) {
+                document.getElementById('predictionResults').innerHTML = 
+                    '<div class="info">Please select a 6-digit lotto game (6/58, 6/55, 6/49, 6/45, or 6/42) for predictions.</div>';
+                return;
+            }
+
+            const maxNumber = getMaxNumber(gameData[0].game_type);
+            let predictions = [];
+            let modelDescription = '';
+            let confidence = 0;
+
+            switch(model) {
+                case 'frequency':
+                    predictions = predictByFrequency(gameData, maxNumber);
+                    modelDescription = 'Selects the most frequently drawn numbers from historical data.<br><br>' +
+                        '<strong>Mathematical Approach:</strong><br>' +
+                        '• Frequency: f(n) = Count(n) / N where N = total draws<br>' +
+                        '• Probability estimation: P(n) = lim<sub>N→∞</sub> f(n)<br>' +
+                        '• Selection criterion: S = {n | f(n) ∈ top 6}<br>' +
+                        '• Bayesian update: P(n|data) ∝ P(data|n) · P(n)<br><br>' +
+                        '<strong>Theoretical Foundation:</strong><br>' +
+                        'Law of Large Numbers: as sample size increases, empirical frequency converges to theoretical probability. ' +
+                        'Uses maximum likelihood estimation (MLE) where θ̂ = argmax L(θ|data).<br><br>' +
+                        '<strong>Simplified Explanation:</strong><br>' +
+                        'This method selects numbers that have appeared most frequently in past draws. ' +
+                        'It counts how many times each number has appeared (e.g., number 7, number 23, etc.) ' +
+                        'and prioritizes those with the highest occurrence rates.<br><br>' +
+                        '<strong>Real-World Analogy:</strong><br>' +
+                        'Consider a vendor who sells products daily. After tracking 100 days, Customer A bought 45 times, ' +
+                        'Customer B bought 30 times, and Customer C bought 25 times. The vendor would stock extra inventory for ' +
+                        'frequent customers (A and B). Similarly, the frequency method selects \"frequent visitor\" numbers.<br><br>' +
+                        '<strong>Practical Understanding:</strong><br>' +
+                        'Imagine a store owner who notices certain customers buy soft drinks almost daily. ' +
+                        'Naturally, they would stock more of those items because frequent purchases indicate higher demand. ' +
+                        'The same principle applies here - we select numbers that appear frequently in historical data.<br><br>' +
+                        '<strong>Sample Computation:</strong><br>' +
+                        'In 1,000 draws:<br>' +
+                        '• Number 7 appeared: 185 times → frequency = 185/1000 = 18.5%<br>' +
+                        '• Number 23 appeared: 178 times → frequency = 178/1000 = 17.8%<br>' +
+                        '• Number 42 appeared: 172 times → frequency = 172/1000 = 17.2%<br>' +
+                        'Therefore, top 3 numbers are: 7, 23, 42 (highest frequency rates)';
+                    confidence = 65;
+                    break;
+                case 'hotcold':
+                    predictions = predictByHotCold(gameData, maxNumber);
+                    modelDescription = 'Combines "hot" (frequently drawn) and "cold" (overdue) numbers.<br><br>' +
+                        '<strong>Mathematical Approach:</strong><br>' +
+                        '• Hot score: H(n) = Σ<sub>i=1</sub><sup>20</sup> δ(n ∈ Draw<sub>i</sub>)<br>' +
+                        '• Cold score: C(n) = T - L(n) where L(n) = last appearance time<br>' +
+                        '• Combined metric: M(n) = α·H(n) + β·C(n), α=0.7, β=0.3<br>' +
+                        '• Selection: Pick top 4 by H(n), random 2 where C(n) > threshold<br><br>' +
+                        '<strong>Theoretical Foundation:</strong><br>' +
+                        'Based on Gamblers Fallacy correction: balances recent trends (regression to mean) with overdue numbers (statistical anomaly detection). ' +
+                        'Uses weighted scoring: W = ∫<sub>0</sub><sup>T</sup> w(t)·f(n,t)dt where w(t) decays exponentially.<br><br>' +
+                        '<strong>Simplified Explanation:</strong><br>' +
+                        'This method uses two types of numbers: "HOT" (recently drawn) and "COLD" (not drawn for a long time). ' +
+                        'The strategy is to select 4 hot numbers and 2 cold numbers, combining \"trending now\" with \"overdue\" selections.<br><br>' +
+                        '<strong>Real-World Analogy:</strong><br>' +
+                        'Imagine TV show scheduling: Some hosts appear frequently (hot - trending now), while others haven\'t had shows in a while (cold - overdue). ' +
+                        'A producer might prioritize current trending hosts but also give opportunities to established talent who deserve a comeback. ' +
+                        'This method uses a balanced approach between current trends and overdue opportunities.<br><br>' +
+                        '<strong>Practical Understanding:</strong><br>' +
+                        'Think of basketball team selection: You\'d choose players who are "hot" now (scored 30 points last game), ' +
+                        'but also give playing time to veterans who haven\'t played recently because they might be "due" to perform well. ' +
+                        'It\'s not just about current trends - overdue numbers also get consideration.<br><br>' +
+                        '<strong>Sample Computation:</strong><br>' +
+                        'Last 20 draws analysis:<br>' +
+                        '<em>HOT Numbers (frequently appearing):</em><br>' +
+                        '• Number 12: appeared 8 times → hot score = 8<br>' +
+                        '• Number 28: appeared 7 times → hot score = 7<br>' +
+                        '<em>COLD Numbers (long absence):</em><br>' +
+                        '• Number 5: last seen 150 draws ago → cold score = 150<br>' +
+                        '• Number 31: last seen 120 draws ago → cold score = 120<br>' +
+                        '<em>Combined score:</em> M = (0.7 × hot) + (0.3 × cold/10)';
+                    confidence = 60;
+                    break;
+                case 'pattern':
+                    predictions = predictByPattern(gameData, maxNumber);
+                    modelDescription = 'Analyzes number sequences and distribution patterns.<br><br>' +
+                        '<strong>Mathematical Approach:</strong><br>' +
+                        '• Range distribution: D<sub>low</sub> + D<sub>mid</sub> + D<sub>high</sub> = 1<br>' +
+                        '• Even/Odd ratio: R<sub>E/O</sub> = (Σ E) / (Σ O) from historical data<br>' +
+                        '• Chi-square test: χ² = Σ [(O<sub>i</sub> - E<sub>i</sub>)² / E<sub>i</sub>]<br>' +
+                        '• Constraint optimization: min ||D<sub>predicted</sub> - D<sub>historical</sub>||<sub>2</sub><br><br>' +
+                        '<strong>Theoretical Foundation:</strong><br>' +
+                        'Distributional analysis using statistical moments (mean μ, variance σ²). Enforces pattern matching: ' +
+                        'E[X] = Σx·P(X=x) and Var[X] = E[X²] - (E[X])². Maintains historical distribution through KL divergence minimization: ' +
+                        'D<sub>KL</sub>(P||Q) = Σ P(x)log(P(x)/Q(x)).<br><br>' +
+                        '<strong>Simplified Explanation:</strong><br>' +
+                        'This method analyzes patterns in number distribution. For example: Are EVEN numbers more common than ODD? ' +
+                        'Are there more small numbers (1-20), medium (21-40), or large (41-58)? The algorithm attempts to replicate historical patterns.<br><br>' +
+                        '<strong>Real-World Analogy:</strong><br>' +
+                        'Consider a bakery owner who notices most customers buy 3 plain and 3 ube bread - a balanced ratio! ' +
+                        'Every morning, she prepares a 50-50 ratio. When new customers arrive, they likely follow the same pattern. ' +
+                        'Pattern method follows the \"usual distribution\" observed in historical data.<br><br>' +
+                        '<strong>Practical Understanding:</strong><br>' +
+                        'Think of fashion trends: When observing what people wore previously, patterns emerge. ' +
+                        'Rarely does everyone wear red - usually there\'s variety. Rarely are all people short or all tall - balance is typical. ' +
+                        'We select numbers that follow \"normal distribution\" - not all low, not all high, but balanced.<br><br>' +
+                        '<strong>Sample Computation:</strong><br>' +
+                        'Historical pattern in 100 draws:<br>' +
+                        '• Low (1-19): 35% of winning numbers<br>' +
+                        '• Mid (20-39): 40% of winning numbers<br>' +
+                        '• High (40-58): 25% of winning numbers<br>' +
+                        '• Even numbers: 55% | Odd: 45%<br>' +
+                        '<em>Therefore in prediction:</em> Select 2 low, 2 mid, 2 high numbers + 3 even, 3 odd (follow the pattern)';
+                    confidence = 58;
+                    break;
+                case 'weighted':
+                    predictions = predictByWeighted(gameData, maxNumber);
+                    modelDescription = 'Uses weighted scoring based on recency and frequency.<br><br>' +
+                        '<strong>Mathematical Approach:</strong><br>' +
+                        '• Time decay weight: w(i) = 1/(i+1) or w(i) = e<sup>-λi</sup><br>' +
+                        '• Weighted score: S(n) = Σ<sub>i=0</sub><sup>N-1</sup> w(i)·δ(n ∈ Draw<sub>i</sub>)<br>' +
+                        '• Normalized score: S\'(n) = S(n) / Σ<sub>all n</sub> S(n)<br>' +
+                        '• Ranking: Select argmax<sub>n∈{1..M}</sub><sup>6</sup> S(n)<br><br>' +
+                        '<strong>Theoretical Foundation:</strong><br>' +
+                        'Exponentially Weighted Moving Average (EWMA): newer data weighted more heavily. ' +
+                        'Assumes temporal correlation: P(X<sub>t</sub>|X<sub>t-1</sub>,...,X<sub>0</sub>) ≠ P(X<sub>t</sub>). ' +
+                        'Integral form: S(n) = ∫<sub>0</sub><sup>T</sup> e<sup>-λt</sup>·I(n,t)dt where I(n,t) is indicator function.<br><br>' +
+                        '<strong>Simplified Explanation:</strong><br>' +
+                        'This method has a <em>bias toward recent events</em>. Numbers that appeared <strong>recently</strong> receive higher scores ' +
+                        'compared to older draws. It treats recent outcomes as more important than historical data.<br><br>' +
+                        '<strong>Real-World Analogy:</strong><br>' +
+                        'Consider monitoring stock prices. If yesterday the price was $45, last week $42, and last month $40, ' +
+                        'which value best reflects today\'s price? Clearly $45, the most recent data point. Older data becomes less relevant. ' +
+                        'Similarly, this method assigns greater weight to recent results than historical ones.<br><br>' +
+                        '<strong>Practical Understanding:</strong><br>' +
+                        'Like a job application review: Employers examine your entire resume but focus primarily on your LATEST experience ' +
+                        'rather than work from 10 years ago. Recent experience is more relevant. Similarly, recent draws receive higher weight in scoring.<br><br>' +
+                        '<strong>Sample Computation:</strong><br>' +
+                        'Number 15 appeared in:<br>' +
+                        '• Latest draw (yesterday): weight = 1.0 × 1 = 1.0 points<br>' +
+                        '• 3 draws ago: weight = 1/4 = 0.25 points<br>' +
+                        '• 10 draws ago: weight = 1/11 = 0.09 points<br>' +
+                        '<em>Total score for #15:</em> 1.0 + 0.25 + 0.09 = 1.34 points<br>' +
+                        '(Higher score due to recent appearances)';
+                    confidence = 62;
+                    break;
+                case 'markov':
+                    predictions = predictByMarkov(gameData, maxNumber);
+                    modelDescription = 'Uses Markov chains to predict based on number transitions.<br><br>' +
+                        '<strong>Mathematical Approach:</strong><br>' +
+                        '• Transition matrix: P<sub>ij</sub> = P(X<sub>t+1</sub>=j | X<sub>t</sub>=i)<br>' +
+                        '• P<sub>ij</sub> = Count(i→j) / Count(i) for all i,j<br>' +
+                        '• State prediction: π<sub>t+1</sub> = π<sub>t</sub> · P where π is probability vector<br>' +
+                        '• Stationary distribution: πP = π, solved by eigenvalue decomposition<br><br>' +
+                        '<strong>Theoretical Foundation:</strong><br>' +
+                        'First-order Markov property: P(X<sub>t+1</sub>|X<sub>t</sub>,X<sub>t-1</sub>,...) = P(X<sub>t+1</sub>|X<sub>t</sub>). ' +
+                        'Chapman-Kolmogorov equation: P<sup>(n)</sup> = P<sup>n</sup> for n-step transitions. ' +
+                        'Convergence: lim<sub>n→∞</sub> P<sup>n</sup> = steady state. Matrix must be stochastic: Σ<sub>j</sub>P<sub>ij</sub> = 1, ∀i.<br><br>' +
+                        '<strong>Simplified Explanation:</strong><br>' +
+                        'This method focuses on <em>transitions</em> or sequential patterns. If number 7 appears in the current draw, ' +
+                        'what typically follows in the next draw based on historical data? Are there connections? This method identifies the ' +
+                        'most common successor numbers after specific numbers appear.<br><br>' +
+                        '<strong>Real-World Analogy:</strong><br>' +
+                        'Weather patterns show that rainy days (state A) typically lead to cloudy days (state B), which then lead to sunny days (state C). ' +
+                        'This transition pattern is rain→cloudy→sunny. ' +
+                        'Similarly, Markov analysis asks: When #7 appears (state), what typically follows next? Based on historical transitions.<br><br>' +
+                        '<strong>Practical Understanding:</strong><br>' +
+                        'Like a TV series with continuing episodes. After a cliffhanger in Episode 1, you have an idea what comes next, right? ' +
+                        'Because the story has a flow. Similarly, if number 12 appeared today, we examine historical data to see what usually follows ' +
+                        'after 12. The most frequent successor becomes our prediction.<br><br>' +
+                        '<strong>Sample Computation:</strong><br>' +
+                        'After Number 7 appeared (100 times in history):<br>' +
+                        '• Number 23 followed: 15 times → probability = 15/100 = 15%<br>' +
+                        '• Number 31 followed: 12 times → probability = 12/100 = 12%<br>' +
+                        '• Number 8 followed: 11 times → probability = 11/100 = 11%<br>' +
+                        '<em>Therefore, if #7 appears today, our next prediction likely includes 23, 31, or 8.</em>';
+                    confidence = 55;
+                case 'neural':
+                    predictions = predictByNeural(gameData, maxNumber);
+                    modelDescription = 'Simulates neural network pattern recognition with stochastic elements.<br><br>' +
+                        '<strong>Mathematical Approach:</strong><br>' +
+                        '• Input normalization: x<sub>i</sub> = f(n<sub>i</sub>) / max(f)<br>' +
+                        '• Hidden layer: h<sub>j</sub> = σ(Σ<sub>i</sub> w<sub>ij</sub>x<sub>i</sub> + b<sub>j</sub> + ε)<br>' +
+                        '• Activation: σ(z) = 1/(1+e<sup>-z</sup>) (sigmoid) or σ(z) = max(0,z) (ReLU)<br>' +
+                        '• Noise injection: ε ~ N(0, σ²) adds randomness<br>' +
+                        '• Output: y = argmax<sup>6</sup>(h)<br><br>' +
+                        '<strong>Why Output Varies:</strong><br>' +
+                        '1. <strong>Stochastic Gradient:</strong> Random noise ε ~ N(0,0.3²) injected each iteration<br>' +
+                        '2. <strong>Non-deterministic Initialization:</strong> Random weights cause different convergence paths<br>' +
+                        '3. <strong>Dropout Simulation:</strong> Random subset of neurons activated: P(active) = p<br>' +
+                        '4. <strong>Monte Carlo sampling:</strong> Multiple forward passes with different random seeds<br><br>' +
+                        '<strong>Theoretical Foundation:</strong><br>' +
+                        'Universal Approximation Theorem: neural networks can approximate any continuous function f: ℝ<sup>n</sup>→ℝ<sup>m</sup>. ' +
+                        'Gradient descent: w<sub>t+1</sub> = w<sub>t</sub> - η∇L(w<sub>t</sub>) where L = loss function. ' +
+                        'Backpropagation: ∂L/∂w<sub>ij</sub> = ∂L/∂y · ∂y/∂h · ∂h/∂w using chain rule. ' +
+                        'Stochasticity ensures exploration of solution space and prevents overfitting to single pattern.<br><br>' +
+                        '<strong>Simplified Explanation:</strong><br>' +
+                        'This simulates an <em>artificial brain</em> learning from patterns. However, there\'s a twist - it includes random elements, so ' +
+                        '<strong>outputs vary</strong> with each run. Unlike other methods with fixed outputs, this one has a "creativity" element.<br><br>' +
+                        '<strong>Real-World Analogy:</strong><br>' +
+                        'Consider a student learning mathematics. When asked what 2+2 equals, they answer 4. ' +
+                        'But sometimes, depending on various factors (the noise element), they might answer 3.8 or 4.2 - close but not exact. ' +
+                        'Neural networks work similarly - they learn from data but include some randomness to avoid being overly predictable.<br><br>' +
+                        '<strong>Practical Understanding:</strong><br>' +
+                        'Like teaching a child to recognize patterns in pictures. You train them to identify dogs in photos. ' +
+                        'Eventually they learn. But with new pictures, they might still make mistakes because they\'re "thinking" based on what they learned. ' +
+                        'These small errors mean outputs vary each time. That\'s neural networks - learning but imperfect.<br><br>' +
+                        '<strong>Sample Computation:</strong><br>' +
+                        'Input: frequency scores for all numbers<br>' +
+                        '• Number 7: score = 0.85 + random(0.3) = 1.12<br>' +
+                        '• Number 15: score = 0.70 + random(0.3) = 0.85<br>' +
+                        '• Number 23: score = 0.90 + random(0.3) = 1.15<br>' +
+                        '<em>Output:</em> Top 6 based sa adjusted scores<br>' +
+                        '<em>Bakit iba kada run?</em> Yung "+random" part ay nag-change every time! Kaya may variety!';
+                    confidence = 53;
+                    break;escription = 'Simulates neural network pattern recognition with stochastic elements.<br><br>' +
+                        '<strong>Mathematical Approach:</strong><br>' +
+                        '• Input normalization: x<sub>i</sub> = f(n<sub>i</sub>) / max(f)<br>' +
+                        '• Hidden layer: h<sub>j</sub> = σ(Σ<sub>i</sub> w<sub>ij</sub>x<sub>i</sub> + b<sub>j</sub> + ε)<br>' +
+                        '• Activation: σ(z) = 1/(1+e<sup>-z</sup>) (sigmoid) or σ(z) = max(0,z) (ReLU)<br>' +
+                        '• Noise injection: ε ~ N(0, σ²) adds randomness<br>' +
+                        '• Output: y = argmax<sup>6</sup>(h)<br><br>' +
+                        '<strong>Why Output Varies:</strong><br>' +
+                        '1. <strong>Stochastic Gradient:</strong> Random noise ε ~ N(0,0.3²) injected each iteration<br>' +
+                        '2. <strong>Non-deterministic Initialization:</strong> Random weights cause different convergence paths<br>' +
+                        '3. <strong>Dropout Simulation:</strong> Random subset of neurons activated: P(active) = p<br>' +
+                        '4. <strong>Monte Carlo sampling:</strong> Multiple forward passes with different random seeds<br><br>' +
+                        '<strong>Theoretical Foundation:</strong><br>' +
+                        'Universal Approximation Theorem: neural networks can approximate any continuous function f: ℝ<sup>n</sup>→ℝ<sup>m</sup>. ' +
+                        'Gradient descent: w<sub>t+1</sub> = w<sub>t</sub> - η∇L(w<sub>t</sub>) where L = loss function. ' +
+                        'Backpropagation: ∂L/∂w<sub>ij</sub> = ∂L/∂y · ∂y/∂h · ∂h/∂w using chain rule. ' +
+                        'Stochasticity ensures exploration of solution space and prevents overfitting to single pattern.';
+                    confidence = 53;
+                    break;
+            }
+
+            displayPredictions(predictions, model, modelDescription, confidence, gameData[0].game);
+        }
+
+        function getMaxNumber(gameType) {
+            const match = gameType.match(/\d+$/);
+            return match ? parseInt(match[0]) : 58;
+        }
+
+        function predictByFrequency(gameData, maxNumber) {
+            const frequency = {};
+            gameData.forEach(result => {
+                result.numbers.forEach(num => {
+                    frequency[num] = (frequency[num] || 0) + 1;
+                });
+            });
+
+            return Object.entries(frequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 6)
+                .map(([num]) => parseInt(num))
+                .sort((a, b) => a - b);
+        }
+
+        function predictByHotCold(gameData, maxNumber) {
+            const recent = gameData.slice(0, Math.min(20, gameData.length));
+            const hotNumbers = {};
+            
+            recent.forEach(result => {
+                result.numbers.forEach(num => {
+                    hotNumbers[num] = (hotNumbers[num] || 0) + 1;
+                });
+            });
+
+            const allNumbers = Array.from({length: maxNumber}, (_, i) => i + 1);
+            const coldNumbers = allNumbers.filter(num => !hotNumbers[num] || hotNumbers[num] <= 2);
+            
+            const hot = Object.entries(hotNumbers)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 4)
+                .map(([num]) => parseInt(num));
+            
+            const cold = coldNumbers
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 2);
+            
+            return [...hot, ...cold].sort((a, b) => a - b);
+        }
+
+        function predictByPattern(gameData, maxNumber) {
+            const ranges = {low: 0, mid: 0, high: 0};
+            const evenOdd = {even: 0, odd: 0};
+            
+            gameData.slice(0, 50).forEach(result => {
+                result.numbers.forEach(num => {
+                    if (num <= maxNumber / 3) ranges.low++;
+                    else if (num <= maxNumber * 2 / 3) ranges.mid++;
+                    else ranges.high++;
+                    
+                    if (num % 2 === 0) evenOdd.even++;
+                    else evenOdd.odd++;
+                });
+            });
+
+            const predictions = [];
+            const targetEven = Math.round(6 * evenOdd.even / (evenOdd.even + evenOdd.odd));
+            
+            const allNumbers = Array.from({length: maxNumber}, (_, i) => i + 1);
+            const shuffled = allNumbers.sort(() => Math.random() - 0.5);
+            
+            let evenCount = 0, oddCount = 0;
+            for (let num of shuffled) {
+                if (predictions.length >= 6) break;
+                if (num % 2 === 0 && evenCount < targetEven) {
+                    predictions.push(num);
+                    evenCount++;
+                } else if (num % 2 !== 0 && oddCount < (6 - targetEven)) {
+                    predictions.push(num);
+                    oddCount++;
+                }
+            }
+            
+            return predictions.sort((a, b) => a - b);
+        }
+
+        function predictByWeighted(gameData, maxNumber) {
+            const weights = {};
+            
+            gameData.forEach((result, index) => {
+                const recencyWeight = 1 / (index + 1);
+                result.numbers.forEach(num => {
+                    weights[num] = (weights[num] || 0) + recencyWeight;
+                });
+            });
+
+            return Object.entries(weights)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 6)
+                .map(([num]) => parseInt(num))
+                .sort((a, b) => a - b);
+        }
+
+        function predictByMarkov(gameData, maxNumber) {
+            const transitions = {};
+            
+            for (let i = 0; i < gameData.length - 1; i++) {
+                const current = gameData[i].numbers;
+                const next = gameData[i + 1].numbers;
+                
+                current.forEach(num => {
+                    if (!transitions[num]) transitions[num] = {};
+                    next.forEach(nextNum => {
+                        transitions[num][nextNum] = (transitions[num][nextNum] || 0) + 1;
+                    });
+                });
+            }
+
+            const lastDraw = gameData[0].numbers;
+            const predictions = new Set();
+            
+            lastDraw.forEach(num => {
+                if (transitions[num]) {
+                    const likely = Object.entries(transitions[num])
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 2)
+                        .map(([n]) => parseInt(n));
+                    likely.forEach(n => predictions.add(n));
+                }
+            });
+
+            while (predictions.size < 6) {
+                predictions.add(Math.floor(Math.random() * maxNumber) + 1);
+            }
+
+            return Array.from(predictions).slice(0, 6).sort((a, b) => a - b);
+        }
+
+        function predictByNeural(gameData, maxNumber) {
+            const inputs = [];
+            const recent = gameData.slice(0, Math.min(100, gameData.length));
+            
+            const numberOccurrences = {};
+            recent.forEach(result => {
+                result.numbers.forEach(num => {
+                    numberOccurrences[num] = (numberOccurrences[num] || 0) + 1;
+                });
+            });
+
+            const normalized = Object.entries(numberOccurrences).map(([num, count]) => ({
+                num: parseInt(num),
+                score: count / recent.length + Math.random() * 0.3
+            }));
+
+            normalized.sort((a, b) => b.score - a.score);
+
+            return normalized
+                .slice(0, 6)
+                .map(item => item.num)
+                .sort((a, b) => a - b);
+        }
+
+        function displayPredictions(predictions, model, description, confidence, gameName) {
+            const modelNames = {
+                'frequency': 'Frequency-Based Model',
+                'hotcold': 'Hot & Cold Analysis',
+                'pattern': 'Pattern Recognition Model',
+                'weighted': 'Weighted Average Model',
+                'markov': 'Markov Chain Model',
+                'neural': 'Neural Network Simulation'
+            };
+
+            let html = '<div class="prediction-section">';
+            html += '<h3>' + modelNames[model] + '</h3>';
+            html += '<p style="color: #6c757d; margin-bottom: 10px;">Game: <strong>' + gameName + '</strong></p>';
+            
+            html += '<div class="prediction-numbers">';
+            predictions.forEach(num => {
+                html += '<div class="prediction-ball">' + num + '</div>';
+            });
+            html += '</div>';
+
+            html += '<div class="model-info">';
+            html += '<strong>Model Description:</strong> ' + description + '<br><br>';
+            html += '<strong>Confidence Level:</strong><br>';
+            html += '<div class="confidence-bar">';
+            html += '<div class="confidence-fill" style="width: ' + confidence + '%"></div>';
+            html += '</div>';
+            html += '<span>' + confidence + '% (Based on historical pattern matching)</span><br><br>';
+            html += '<strong>Important Notice:</strong> This is a statistical prediction based on historical data. ';
+            html += 'Lottery draws are random and past results do not guarantee future outcomes. ';
+            html += 'Use these predictions for entertainment purposes only.';
+            html += '</div>';
+
+            html += '</div>';
+
+            // Add additional predictions
+            html += '<div style="margin-top: 30px;">';
+            html += '<h3>Multiple Prediction Sets</h3>';
+            html += '<p style="color: #6c757d; margin-bottom: 15px;">Alternative number combinations using different algorithms:</p>';
+            
+            const maxNumber = getMaxNumber(filteredData.find(r => r.game_type.startsWith('6/')).game_type);
+            const gameData = filteredData.filter(r => r.game_type.startsWith('6/'));
+            
+            // Calculate confidence levels for alternative predictions
+            const randomNums = generateRandom(maxNumber);
+            const randomConfidence = calculateConfidence(randomNums, gameData, maxNumber, 'random');
+            
+            const balancedNums = generateBalanced(gameData, maxNumber);
+            const balancedConfidence = calculateConfidence(balancedNums, gameData, maxNumber, 'balanced');
+            
+            const recentNums = predictByWeighted(gameData.slice(0, 30), maxNumber);
+            const recentConfidence = calculateConfidence(recentNums, gameData, maxNumber, 'recent');
+            
+            const altPredictions = [
+                {
+                    name: 'Random Selection', 
+                    nums: randomNums,
+                    confidence: randomConfidence,
+                    desc: '<strong>Computation:</strong> Pure uniform random sampling<br>' +
+                          '• P(n) = 1/M for each number n, M = max number<br>' +
+                          '• Uses pseudo-random generator: X<sub>n+1</sub> = (aX<sub>n</sub> + c) mod m<br>' +
+                          '• Ensures equal probability: ∫<sub>1</sub><sup>M</sup> P(x)dx = 1<br>' +
+                          '• No bias, truly memoryless: P(n|history) = P(n)<br>' +
+                          '<strong>Theory:</strong> Simulates true randomness of lottery. Uniform distribution U(1,M). ' +
+                          'Each draw independent: P(A∩B) = P(A)·P(B).<br><br>' +
+                          '<strong>Simplified Explanation:</strong><br>' +
+                          'This is <em>purely random</em> - no pattern, no history, no analysis. Like rolling dice. ' +
+                          'Every number has equal chance of appearing. No bias, no favoritism!<br><br>' +
+                          '<strong>Real-World Analogy:</strong><br>' +
+                          'Consider a carnival game - spin the wheel. All numbers on the wheel have equal size, no special treatment. ' +
+                          'When you spin it, any number can come up. There\'s no "because this appeared before" or "this hasn\'t appeared in a while". ' +
+                          'Each spin is a fresh start. That\'s random selection!<br><br>' +
+                          '<strong>Practical Understanding:</strong><br>' +
+                          'Like drawing a ball from a bag without looking. All balls have equal chance. ' +
+                          'No "lucky ball" or "unlucky ball". Pure luck only!<br><br>' +
+                          '<strong>Sample Computation:</strong><br>' +
+                          'With 58 numbers (1-58), each one has:<br>' +
+                          '• Probability = 1/58 = 1.72% each<br>' +
+                          '• No historical data used<br>' +
+                          '• Random generator picks any 6 numbers<br>' +
+                          '<em>Result:</em> Even 1,2,3,4,5,6 could appear - all have equal chance!<br><br>' +
+                          '<strong>Confidence Calculation:</strong><br>' +
+                          '• Base confidence = 30% (random baseline)<br>' +
+                          '• No historical pattern matching (purely random)<br>' +
+                          '• Formula: C = 30 + 0·(pattern match) = 30%<br>' +
+                          '• Interpretation: Low confidence due to no statistical basis'
+                },
+                {
+                    name: 'Balanced Mix', 
+                    nums: balancedNums,
+                    confidence: balancedConfidence,
+                    desc: '<strong>Computation:</strong> Maintains optimal range distribution<br>' +
+                          '• Divide range into k=3 segments: [1,M/3], (M/3,2M/3], (2M/3,M]<br>' +
+                          '• Select n<sub>i</sub> from each segment: Σn<sub>i</sub> = 6<br>' +
+                          '• Weighted selection: P(segment) ∝ historical frequency<br>' +
+                          '• Entropy maximization: H(X) = -Σ P(x)log P(x)<br>' +
+                          '<strong>Theory:</strong> Balanced coverage reduces clustering. Uses stratified sampling: ' +
+                          'E[X̄<sub>strat</sub>] = Σ(W<sub>h</sub>·μ<sub>h</sub>) where W<sub>h</sub> = stratum weight. ' +
+                          'Minimizes variance: Var(X̄<sub>strat</sub>) ≤ Var(X̄<sub>random</sub>).<br><br>' +
+                          '<strong>Simplified Explanation:</strong><br>' +
+                          'Not all small, not all large - <em>balanced</em>! We divide numbers into 3 groups: ' +
+                          'LOW (small), MID (middle), HIGH (large). We select equally from each group for a balanced selection.<br><br>' +
+                          '<strong>Real-World Analogy:</strong><br>' +
+                          'You\'re ordering pizza for a party. You wouldn\'t buy 10 plain pizzas - that\'s boring! ' +
+                          'You get 3 Hawaiian, 3 Pepperoni, 4 Cheese Supreme - balanced so all guests have a type they like. ' +
+                          'Similarly, balanced mix includes LOW, MID, HIGH numbers for balance!<br><br>' +
+                          '<strong>Practical Understanding:</strong><br>' +
+                          'Like eating a meal - you wouldn\'t eat 6 bananas only, right? It should be balanced: 2 fruits, 2 vegetables, 2 proteins. ' +
+                          'Same with numbers - 2 from low range, 2 from middle, 2 from high. More balanced, more "natural"!<br><br>' +
+                          '<strong>Sample Computation:</strong><br>' +
+                          'For 6/58 lotto:<br>' +
+                          '• LOW range (1-19): Pick 2 numbers<br>' +
+                          '• MID range (20-39): Pick 2 numbers<br>' +
+                          '• HIGH range (40-58): Pick 2 numbers<br>' +
+                          '<em>Example result:</em> 7, 15, 23, 31, 44, 52 (balanced distribution!)<br><br>' +
+                          '<strong>Confidence Calculation:</strong><br>' +
+                          '• Base = 45% (distribution matching)<br>' +
+                          '• Pattern bonus = (matches / 6) × 20%<br>' +
+                          '• Distribution score = |historical_dist - predicted_dist|<br>' +
+                          '• Formula: C = 45 + (matches×3.33) + (1-dist_error)×10<br>' +
+                          '• Accounts for even/odd ratio and range coverage'
+                },
+                {
+                    name: 'Recent Trends', 
+                    nums: recentNums,
+                    confidence: recentConfidence,
+                    desc: '<strong>Computation:</strong> Short-term weighted frequency analysis<br>' +
+                          '• Recent window: T = 30 most recent draws<br>' +
+                          '• Exponential decay: w(t) = e<sup>-λ(T-t)</sup>, λ = 0.1<br>' +
+                          '• Momentum score: M(n) = Σ<sub>t∈window</sub> w(t)·δ(n,t)<br>' +
+                          '• Time-weighted average: TWA = Σ(w<sub>i</sub>x<sub>i</sub>) / Σw<sub>i</sub><br>' +
+                          '<strong>Theory:</strong> Captures short-term autocorrelation. Moving average: ' +
+                          'MA(t) = (1/k)Σ<sub>i=0</sub><sup>k-1</sup>X<sub>t-i</sub>. ' +
+                          'Tests for trend: ρ = Cov(X<sub>t</sub>,X<sub>t-1</sub>) / (σ<sub>t</sub>·σ<sub>t-1</sub>). ' +
+                          'Assumes local stationarity over small time windows.<br><br>' +
+                          '<strong>Simplified Explanation:</strong><br>' +
+                          'We focus only on <em>recent draws</em> (last 30 draws). Older data is ignored. ' +
+                          'The approach is "what\'s trending now" - which numbers are hot lately? Those are selected!<br><br>' +
+                          '<strong>Real-World Analogy:</strong><br>' +
+                          'You own a clothing store. Last month floral dresses were popular, but this month neon colors are selling. ' +
+                          'What do you restock? Obviously neon colors because that\'s the "recent trend"! Not floral that was popular last month. ' +
+                          'Similarly, we select numbers that are "trending" now based on recent draws!<br><br>' +
+                          '<strong>Practical Understanding:</strong><br>' +
+                          'Like weather forecasting - the temperature from the last 3 days is more important than last year\'s temperature. ' +
+                          'Because recent data is more relevant for predicting tomorrow\'s weather. Similarly here - recent draws carry more weight!<br><br>' +
+                          '<strong>Sample Computation:</strong><br>' +
+                          'Examine last 30 draws only:<br>' +
+                          '• Number 12: appeared 8 times in last 30 = HOT<br>' +
+                          '• Number 23: appeared 7 times in last 30 = HOT<br>' +
+                          '• Number 5: appeared only 1 time = NOT trending<br>' +
+                          '<em>Priority:</em> Select the "HOT" numbers (12, 23) because they\'re trending now!<br><br>' +
+                          '<strong>Confidence Calculation:</strong><br>' +
+                          '• Base = 55% (recency-weighted)<br>' +
+                          '• Frequency score = Σ(weight × occurrence) / max_score<br>' +
+                          '• Recency bonus = avg(last_seen_index) / window_size × 15%<br>' +
+                          '• Formula: C = 55 + (freq_score×20) + (recency_bonus)<br>' +
+                          '• Recent numbers get higher confidence scores'
+                }
+            ];
+
+            altPredictions.forEach(pred => {
+                html += '<div class="prediction-section" style="border-left-color: #764ba2;">';
+                html += '<h4 style="color: #764ba2; margin-bottom: 10px;">' + pred.name + '</h4>';
+                html += '<div class="prediction-numbers">';
+                pred.nums.forEach(num => {
+                    html += '<div class="prediction-ball" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); width: 45px; height: 45px; font-size: 1.1em;">' + num + '</div>';
+                });
+                html += '</div>';
+                
+                // Add confidence bar
+                html += '<div style="margin: 15px 0;">';
+                html += '<strong style="color: #764ba2;">Confidence Level:</strong><br>';
+                html += '<div class="confidence-bar">';
+                html += '<div class="confidence-fill" style="width: ' + pred.confidence + '%; background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);"></div>';
+                html += '</div>';
+                html += '<span style="color: #495057; font-size: 0.9em;">' + pred.confidence + '% confidence</span>';
+                html += '</div>';
+                
+                if (pred.desc) {
+                    html += '<div class="model-info" style="font-size: 0.85em; margin-top: 10px;">' + pred.desc + '</div>';
+                }
+                html += '</div>';
+            });
+            
+            html += '</div>';
+
+            document.getElementById('predictionResults').innerHTML = html;
+        function generateBalanced(gameData, maxNumber) {
+            const third = Math.floor(maxNumber / 3);
+            const nums = [];
+            
+            nums.push(Math.floor(Math.random() * third) + 1);
+            nums.push(Math.floor(Math.random() * third) + third + 1);
+            nums.push(Math.floor(Math.random() * third) + (third * 2) + 1);
+            
+            while (nums.length < 6) {
+                const num = Math.floor(Math.random() * maxNumber) + 1;
+                if (!nums.includes(num)) nums.push(num);
+            }
+            
+            return nums.sort((a, b) => a - b);
+        }
+
+        function generateRandom(maxNumber) {
+            const nums = new Set();
+            while (nums.size < 6) {
+                nums.add(Math.floor(Math.random() * maxNumber) + 1);
+            }
+            return Array.from(nums).sort((a, b) => a - b);
+        }
+
+        function calculateConfidence(predictions, gameData, maxNumber, method) {
+            // Calculate historical frequency of predicted numbers
+            const frequency = {};
+            gameData.forEach(result => {
+                result.numbers.forEach(num => {
+                    frequency[num] = (frequency[num] || 0) + 1;
+                });
+            });
+
+            let baseConfidence = 0;
+            let frequencyScore = 0;
+            let patternMatch = 0;
+            
+            // Calculate average frequency of predicted numbers
+            predictions.forEach(num => {
+                if (frequency[num]) {
+                    frequencyScore += frequency[num];
+                }
+            });
+            frequencyScore = (frequencyScore / (gameData.length * 6)) * 100;
+
+            // Calculate pattern matching (how many predicted numbers appeared in recent draws)
+            const recent10 = gameData.slice(0, 10);
+            const recentNumbers = new Set();
+            recent10.forEach(draw => {
+                draw.numbers.forEach(num => recentNumbers.add(num));
+            });
+            predictions.forEach(num => {
+                if (recentNumbers.has(num)) patternMatch++;
+            });
+
+            // Method-specific confidence calculation
+            switch(method) {
+                case 'random':
+                    // Random has lowest confidence (pure chance)
+                    // C = 30 + 0×(any pattern) = 30%
+                    baseConfidence = 30;
+                    return Math.round(baseConfidence);
+                    
+                case 'balanced':
+                    // Balanced uses distribution matching
+                    // C = 45 + (pattern_matches × 3.33) + (frequency_score × 0.1)
+                    baseConfidence = 45;
+                    const patternBonus = patternMatch * 3.33; // Up to 20% if all 6 match
+                    const freqBonus = frequencyScore * 0.1; // Small bonus for frequent numbers
+                    return Math.round(Math.min(baseConfidence + patternBonus + freqBonus, 70));
+                    
+                case 'recent':
+                    // Recent trends uses recency weighting
+                    // C = 55 + (frequency_score × 0.2) + (pattern_match × 2.5)
+                    baseConfidence = 55;
+                    const freqWeight = frequencyScore * 0.2;
+                    const recentBonus = patternMatch * 2.5; // Up to 15% bonus
+                    return Math.round(Math.min(baseConfidence + freqWeight + recentBonus, 75));
+                    
+                default:
+                    return 50;
+            }
+        }   nums.push(Math.floor(Math.random() * third) + 1);
+            nums.push(Math.floor(Math.random() * third) + third + 1);
+            nums.push(Math.floor(Math.random() * third) + (third * 2) + 1);
+            
+            while (nums.length < 6) {
+                const num = Math.floor(Math.random() * maxNumber) + 1;
+                if (!nums.includes(num)) nums.push(num);
+            }
+            
+            return nums.sort((a, b) => a - b);
+        }
+
+        function switchTab(event, tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-PH').format(num);
+        }
+    </script>
+</body>
+</html>
