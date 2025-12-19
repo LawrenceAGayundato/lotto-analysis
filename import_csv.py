@@ -181,4 +181,4 @@ if __name__ == "__main__":
     csv_file = sys.argv[1]
     import_csv_to_json(csv_file)
     
-    print("\n✅ Import complete! You can now open dashboard.html to view the data.")
+    print("\nImport complete! You can now open dashboard.html to view the data.")
