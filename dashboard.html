@@ -166,10 +166,16 @@
             display: block;
         }
 
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 20px;
+        }
+
         .results-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            min-width: 600px;
         }
 
         .results-table th {
@@ -459,21 +465,101 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 10px;
+            }
+
             header h1 {
                 font-size: 1.8em;
             }
 
+            header p {
+                font-size: 0.9em;
+            }
+
             .stats-grid {
                 grid-template-columns: 1fr;
+                padding: 15px;
+                gap: 10px;
             }
 
             .controls {
                 flex-direction: column;
                 align-items: stretch;
+                padding: 15px;
+                gap: 10px;
+            }
+
+            .controls select,
+            .controls input,
+            .controls button {
+                width: 100%;
+                font-size: 0.95em;
             }
 
             .tabs {
                 flex-direction: column;
+                padding: 0 10px;
+            }
+
+            .tab {
+                width: 100%;
+                text-align: center;
+            }
+
+            .tab-content {
+                padding: 15px;
+            }
+
+            .prediction-ball {
+                width: 40px;
+                height: 40px;
+                font-size: 1.1em;
+            }
+
+            .prediction-numbers {
+                gap: 8px;
+            }
+
+            .model-info {
+                font-size: 0.85em;
+            }
+
+            .table-wrapper {
+                margin: 10px -15px;
+                width: calc(100% + 30px);
+            }
+
+            .results-table {
+                min-width: 100%;
+                font-size: 0.8em;
+            }
+
+            .results-table th {
+                padding: 10px 8px;
+                font-size: 0.85em;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .results-table td {
+                padding: 10px 8px;
+                font-size: 0.85em;
+            }
+
+            .lotto-ball {
+                width: 32px;
+                height: 32px;
+                font-size: 0.9em;
+            }
+
+            .lotto-numbers {
+                gap: 5px;
             }
         }
     </style>
@@ -705,6 +791,7 @@
                 '<div style="margin-bottom: 15px; color: #6c757d;">' +
                     '<strong>Total Results:</strong> ' + sortedData.length + ' draws' +
                 '</div>' +
+                '<div class="table-wrapper">' +
                 '<table class="results-table">' +
                     '<thead>' +
                         '<tr>' +
@@ -735,6 +822,7 @@
             html += 
                     '</tbody>' +
                 '</table>' +
+                '</div>' +
                 '<div class="pagination">' +
                     '<button onclick="changePage(-1)" ' + (currentPage === 1 ? 'disabled' : '') + '>' +
                         '◀ Previous' +
@@ -840,6 +928,7 @@
             });
 
             let html = '<h2>Game Statistics</h2>';
+            html += '<div class="table-wrapper">';
             html += '<table class="results-table"><thead><tr>';
             html += '<th>Game</th><th>Total Draws</th><th>Avg Jackpot</th><th>Total Winners</th>';
             html += '</tr></thead><tbody>';
@@ -854,7 +943,7 @@
                     '</tr>';
             });
 
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
 
             // Add insights
             html += 
@@ -874,7 +963,28 @@
             }
 
             let html = '<h2>AI-Powered Number Prediction</h2>';
-            html += '<p style="color: #6c757d; margin-bottom: 20px;">Based on historical patterns and machine learning analysis</p>';
+            html += '<div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #000000;">';
+            html += '<p style="color: #495057; margin-bottom: 15px; font-size: 1.05em; line-height: 1.6;">';
+            html += '<strong>Statistical Analysis & Machine Learning Algorithms</strong><br>';
+            html += 'This system employs advanced statistical methods and machine learning techniques to analyze historical lottery data and identify patterns. ';
+            html += 'Our algorithms process thousands of historical draws using multiple computational approaches:';
+            html += '</p>';
+            html += '<div style="color: #6c757d; font-size: 0.95em; line-height: 1.7;">';
+            html += '<strong>Mathematical Foundation:</strong><br>';
+            html += '• <strong>Probability Theory:</strong> P(E) = n(E) / n(S) - Calculates likelihood of number occurrences<br>';
+            html += '• <strong>Statistical Distribution:</strong> χ² test for uniform distribution verification<br>';
+            html += '• <strong>Temporal Analysis:</strong> Time-series decomposition: X(t) = T(t) + S(t) + R(t)<br>';
+            html += '• <strong>Markov Chains:</strong> Transition probability matrices P<sub>ij</sub> = P(X<sub>t+1</sub>=j | X<sub>t</sub>=i)<br>';
+            html += '• <strong>Neural Networks:</strong> Multi-layer perceptron with sigmoid activation σ(x) = 1/(1+e<sup>-x</sup>)<br><br>';
+            html += '<strong>Data Processing:</strong><br>';
+            html += 'Analyzes frequency distributions, hot/cold number patterns, sequential correlations, weighted recency scores, ';
+            html += 'and stochastic simulations across ' + (filteredData ? filteredData.length : '1000+') + ' historical draws. ';
+            html += 'Each model applies different statistical methodologies to generate predictions with calculated confidence intervals.<br><br>';
+            html += '<strong>Confidence Metrics:</strong><br>';
+            html += 'Predictions include confidence scores (30-75%) based on pattern matching strength, historical accuracy, ';
+            html += 'data sufficiency, and statistical significance (p-value < 0.05 threshold).';
+            html += '</div>';
+            html += '</div>';
             
             // Model selector
             html += '<div class="model-selector">' +
@@ -1330,157 +1440,6 @@
             html += 'Use these predictions for entertainment purposes only.';
             html += '</div>';
 
-            html += '</div>';
-
-            // Add additional predictions
-            html += '<div style="margin-top: 30px;">';
-            html += '<h3>Multiple Prediction Sets</h3>';
-            html += '<p style="color: #6c757d; margin-bottom: 15px;">Alternative number combinations using different algorithms:</p>';
-            
-            const maxNumber = getMaxNumber(filteredData.find(r => r.game_type.startsWith('6/')).game_type);
-            const gameData = filteredData.filter(r => r.game_type.startsWith('6/'));
-            
-            // Calculate confidence levels for alternative predictions
-            const randomNums = generateRandom(maxNumber);
-            const randomConfidence = calculateConfidence(randomNums, gameData, maxNumber, 'random');
-            
-            const balancedNums = generateBalanced(gameData, maxNumber);
-            const balancedConfidence = calculateConfidence(balancedNums, gameData, maxNumber, 'balanced');
-            
-            const recentNums = predictByWeighted(gameData.slice(0, 30), maxNumber);
-            const recentConfidence = calculateConfidence(recentNums, gameData, maxNumber, 'recent');
-            
-            const altPredictions = [
-                {
-                    name: 'Random Selection', 
-                    nums: randomNums,
-                    confidence: randomConfidence,
-                    desc: '<strong>Computation:</strong> Pure uniform random sampling<br>' +
-                          '• P(n) = 1/M for each number n, M = max number<br>' +
-                          '• Uses pseudo-random generator: X<sub>n+1</sub> = (aX<sub>n</sub> + c) mod m<br>' +
-                          '• Ensures equal probability: ∫<sub>1</sub><sup>M</sup> P(x)dx = 1<br>' +
-                          '• No bias, truly memoryless: P(n|history) = P(n)<br>' +
-                          '<strong>Theory:</strong> Simulates true randomness of lottery. Uniform distribution U(1,M). ' +
-                          'Each draw independent: P(A∩B) = P(A)·P(B).<br><br>' +
-                          '<strong>Simplified Explanation:</strong><br>' +
-                          'This is <em>purely random</em> - no pattern, no history, no analysis. Like rolling dice. ' +
-                          'Every number has equal chance of appearing. No bias, no favoritism!<br><br>' +
-                          '<strong>Real-World Analogy:</strong><br>' +
-                          'Consider a carnival game - spin the wheel. All numbers on the wheel have equal size, no special treatment. ' +
-                          'When you spin it, any number can come up. There\'s no "because this appeared before" or "this hasn\'t appeared in a while". ' +
-                          'Each spin is a fresh start. That\'s random selection!<br><br>' +
-                          '<strong>Practical Understanding:</strong><br>' +
-                          'Like drawing a ball from a bag without looking. All balls have equal chance. ' +
-                          'No "lucky ball" or "unlucky ball". Pure luck only!<br><br>' +
-                          '<strong>Sample Computation:</strong><br>' +
-                          'With 58 numbers (1-58), each one has:<br>' +
-                          '• Probability = 1/58 = 1.72% each<br>' +
-                          '• No historical data used<br>' +
-                          '• Random generator picks any 6 numbers<br>' +
-                          '<em>Result:</em> Even 1,2,3,4,5,6 could appear - all have equal chance!<br><br>' +
-                          '<strong>Confidence Calculation:</strong><br>' +
-                          '• Base confidence = 30% (random baseline)<br>' +
-                          '• No historical pattern matching (purely random)<br>' +
-                          '• Formula: C = 30 + 0·(pattern match) = 30%<br>' +
-                          '• Interpretation: Low confidence due to no statistical basis'
-                },
-                {
-                    name: 'Balanced Mix', 
-                    nums: balancedNums,
-                    confidence: balancedConfidence,
-                    desc: '<strong>Computation:</strong> Maintains optimal range distribution<br>' +
-                          '• Divide range into k=3 segments: [1,M/3], (M/3,2M/3], (2M/3,M]<br>' +
-                          '• Select n<sub>i</sub> from each segment: Σn<sub>i</sub> = 6<br>' +
-                          '• Weighted selection: P(segment) ∝ historical frequency<br>' +
-                          '• Entropy maximization: H(X) = -Σ P(x)log P(x)<br>' +
-                          '<strong>Theory:</strong> Balanced coverage reduces clustering. Uses stratified sampling: ' +
-                          'E[X̄<sub>strat</sub>] = Σ(W<sub>h</sub>·μ<sub>h</sub>) where W<sub>h</sub> = stratum weight. ' +
-                          'Minimizes variance: Var(X̄<sub>strat</sub>) ≤ Var(X̄<sub>random</sub>).<br><br>' +
-                          '<strong>Simplified Explanation:</strong><br>' +
-                          'Not all small, not all large - <em>balanced</em>! We divide numbers into 3 groups: ' +
-                          'LOW (small), MID (middle), HIGH (large). We select equally from each group for a balanced selection.<br><br>' +
-                          '<strong>Real-World Analogy:</strong><br>' +
-                          'You\'re ordering pizza for a party. You wouldn\'t buy 10 plain pizzas - that\'s boring! ' +
-                          'You get 3 Hawaiian, 3 Pepperoni, 4 Cheese Supreme - balanced so all guests have a type they like. ' +
-                          'Similarly, balanced mix includes LOW, MID, HIGH numbers for balance!<br><br>' +
-                          '<strong>Practical Understanding:</strong><br>' +
-                          'Like eating a meal - you wouldn\'t eat 6 bananas only, right? It should be balanced: 2 fruits, 2 vegetables, 2 proteins. ' +
-                          'Same with numbers - 2 from low range, 2 from middle, 2 from high. More balanced, more "natural"!<br><br>' +
-                          '<strong>Sample Computation:</strong><br>' +
-                          'For 6/58 lotto:<br>' +
-                          '• LOW range (1-19): Pick 2 numbers<br>' +
-                          '• MID range (20-39): Pick 2 numbers<br>' +
-                          '• HIGH range (40-58): Pick 2 numbers<br>' +
-                          '<em>Example result:</em> 7, 15, 23, 31, 44, 52 (balanced distribution!)<br><br>' +
-                          '<strong>Confidence Calculation:</strong><br>' +
-                          '• Base = 45% (distribution matching)<br>' +
-                          '• Pattern bonus = (matches / 6) × 20%<br>' +
-                          '• Distribution score = |historical_dist - predicted_dist|<br>' +
-                          '• Formula: C = 45 + (matches×3.33) + (1-dist_error)×10<br>' +
-                          '• Accounts for even/odd ratio and range coverage'
-                },
-                {
-                    name: 'Recent Trends', 
-                    nums: recentNums,
-                    confidence: recentConfidence,
-                    desc: '<strong>Computation:</strong> Short-term weighted frequency analysis<br>' +
-                          '• Recent window: T = 30 most recent draws<br>' +
-                          '• Exponential decay: w(t) = e<sup>-λ(T-t)</sup>, λ = 0.1<br>' +
-                          '• Momentum score: M(n) = Σ<sub>t∈window</sub> w(t)·δ(n,t)<br>' +
-                          '• Time-weighted average: TWA = Σ(w<sub>i</sub>x<sub>i</sub>) / Σw<sub>i</sub><br>' +
-                          '<strong>Theory:</strong> Captures short-term autocorrelation. Moving average: ' +
-                          'MA(t) = (1/k)Σ<sub>i=0</sub><sup>k-1</sup>X<sub>t-i</sub>. ' +
-                          'Tests for trend: ρ = Cov(X<sub>t</sub>,X<sub>t-1</sub>) / (σ<sub>t</sub>·σ<sub>t-1</sub>). ' +
-                          'Assumes local stationarity over small time windows.<br><br>' +
-                          '<strong>Simplified Explanation:</strong><br>' +
-                          'We focus only on <em>recent draws</em> (last 30 draws). Older data is ignored. ' +
-                          'The approach is "what\'s trending now" - which numbers are hot lately? Those are selected!<br><br>' +
-                          '<strong>Real-World Analogy:</strong><br>' +
-                          'You own a clothing store. Last month floral dresses were popular, but this month neon colors are selling. ' +
-                          'What do you restock? Obviously neon colors because that\'s the "recent trend"! Not floral that was popular last month. ' +
-                          'Similarly, we select numbers that are "trending" now based on recent draws!<br><br>' +
-                          '<strong>Practical Understanding:</strong><br>' +
-                          'Like weather forecasting - the temperature from the last 3 days is more important than last year\'s temperature. ' +
-                          'Because recent data is more relevant for predicting tomorrow\'s weather. Similarly here - recent draws carry more weight!<br><br>' +
-                          '<strong>Sample Computation:</strong><br>' +
-                          'Examine last 30 draws only:<br>' +
-                          '• Number 12: appeared 8 times in last 30 = HOT<br>' +
-                          '• Number 23: appeared 7 times in last 30 = HOT<br>' +
-                          '• Number 5: appeared only 1 time = NOT trending<br>' +
-                          '<em>Priority:</em> Select the "HOT" numbers (12, 23) because they\'re trending now!<br><br>' +
-                          '<strong>Confidence Calculation:</strong><br>' +
-                          '• Base = 55% (recency-weighted)<br>' +
-                          '• Frequency score = Σ(weight × occurrence) / max_score<br>' +
-                          '• Recency bonus = avg(last_seen_index) / window_size × 15%<br>' +
-                          '• Formula: C = 55 + (freq_score×20) + (recency_bonus)<br>' +
-                          '• Recent numbers get higher confidence scores'
-                }
-            ];
-
-            altPredictions.forEach(pred => {
-                html += '<div class="prediction-section" style="border-left-color: #764ba2;">';
-                html += '<h4 style="color: #764ba2; margin-bottom: 10px;">' + pred.name + '</h4>';
-                html += '<div class="prediction-numbers">';
-                pred.nums.forEach(num => {
-                    html += '<div class="prediction-ball" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); width: 45px; height: 45px; font-size: 1.1em;">' + num + '</div>';
-                });
-                html += '</div>';
-                
-                // Add confidence bar
-                html += '<div style="margin: 15px 0;">';
-                html += '<strong style="color: #764ba2;">Confidence Level:</strong><br>';
-                html += '<div class="confidence-bar">';
-                html += '<div class="confidence-fill" style="width: ' + pred.confidence + '%; background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);"></div>';
-                html += '</div>';
-                html += '<span style="color: #495057; font-size: 0.9em;">' + pred.confidence + '% confidence</span>';
-                html += '</div>';
-                
-                if (pred.desc) {
-                    html += '<div class="model-info" style="font-size: 0.85em; margin-top: 10px;">' + pred.desc + '</div>';
-                }
-                html += '</div>';
-            });
-            
             html += '</div>';
 
             document.getElementById('predictionResults').innerHTML = html;
