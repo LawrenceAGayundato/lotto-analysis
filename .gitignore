@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local scripts
+serve_dashboard.py
+open_dashboard.sh
+run.sh
+
+# Requirements
+requirements.txt
+README.md
+DATA_IMPORT_GUIDE.md
