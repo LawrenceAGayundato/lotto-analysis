@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCSO Lotto Dashboard</title>
+    <title>PCSO Lottery Statistical Analysis & Prediction System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -347,6 +349,60 @@
             border-radius: 12px;
         }
 
+        .chart-wrapper {
+            position: relative;
+            height: auto;
+            min-height: 500px;
+            margin: 20px 0;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-wrapper canvas {
+            max-height: 350px;
+            height: 350px !important;
+            width: 100% !important;
+        }
+
+        .chart-canvas-container {
+            position: relative;
+            height: 350px;
+            margin-bottom: 10px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 15px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .chart-insight {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #000000;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #495057;
+            line-height: 1.6;
+        }
+
         .no-data {
             text-align: center;
             padding: 50px;
@@ -594,6 +650,38 @@
                 font-size: 0.85em;
             }
 
+            .chart-wrapper {
+                min-height: 450px;
+                padding: 20px;
+                margin: 15px 0;
+            }
+
+            .chart-wrapper canvas {
+                max-height: 280px;
+                height: 280px !important;
+            }
+
+            .chart-canvas-container {
+                height: 280px;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .chart-title {
+                font-size: 1em;
+            }
+
+            .chart-insight {
+                font-size: 0.85em;
+            }
+
+            .chart-title {
+                font-size: 1em;
+            }
+
             .table-wrapper {
                 margin: 10px -15px;
                 width: calc(100% + 30px);
@@ -632,9 +720,13 @@
 <body>
     <div class="container">
         <header>
-            <h1>PCSO Lotto Dashboard</h1>
-            <p>Historical Results & Statistics | Philippine Charity Sweepstakes Office</p>
+            <h1>PCSO Lottery Statistical Analysis & Prediction System</h1>
+            <p>A Data-Driven Approach to Lottery Pattern Analysis & Forecasting</p>
         </header>
+
+        <div class="info" style="margin-bottom: 20px;">
+            <p><strong>Note:</strong>This is an experimental project developed independently, presenting predictions and analyses based on statistical patterns and machine learning models for educational and research purposes only. Even if applied, lottery results cannot be accurately predicted because they are purely random and have no relation to past events.</p>
+        </div>
 
         <div class="controls">
             <label for="gameFilter">Game:</label>
@@ -720,20 +812,43 @@
 
         async function loadData() {
             try {
+                // Show loading message
+                document.getElementById('recentResults').innerHTML = 
+                    '<div class="loading">Updating data from PCSO... Please wait.</div>';
+                
+                // Call API to update data files
+                try {
+                    const updateResponse = await fetch('http://localhost:5000/api/update-data', {
+                        method: 'POST'
+                    });
+                    
+                    if (updateResponse.ok) {
+                        console.log('Data updated successfully');
+                    } else {
+                        console.warn('Data update failed, using existing data');
+                    }
+                } catch (apiError) {
+                    console.warn('Could not reach API server, using existing data:', apiError.message);
+                }
+                
                 // Load main data
-                const response = await fetch('pcso_lotto_data.json');
+                const response = await fetch('pcso_lotto_data.json?t=' + Date.now());
                 if (!response.ok) {
                     throw new Error('Data file not found. Please run fetch_pcso_data.py first.');
                 }
                 allData = await response.json();
                 
                 // Load statistics
-                const statsResponse = await fetch('pcso_statistics.json');
+                const statsResponse = await fetch('pcso_statistics.json?t=' + Date.now());
                 if (statsResponse.ok) {
                     statistics = await statsResponse.json();
                 }
 
                 filteredData = allData.results;
+                
+                // Initialize date pickers with min and max dates from data
+                initializeDatePickers();
+                
                 updateDisplay();
             } catch (error) {
                 document.getElementById('recentResults').innerHTML = 
@@ -743,6 +858,27 @@
                         'Please run the Python script first: <code>python fetch_pcso_data.py</code>' +
                     '</div>';
             }
+        }
+
+        function initializeDatePickers() {
+            if (!allData || !allData.results || allData.results.length === 0) return;
+
+            // Get min and max dates from data
+            const dates = allData.results.map(d => d.date);
+            const minDate = dates.reduce((a, b) => a < b ? a : b);
+            const maxDate = dates.reduce((a, b) => a > b ? a : b);
+
+            // Set the date input values and attributes
+            const dateFromInput = document.getElementById('dateFrom');
+            const dateToInput = document.getElementById('dateTo');
+
+            dateFromInput.value = minDate;
+            dateFromInput.min = minDate;
+            dateFromInput.max = maxDate;
+
+            dateToInput.value = maxDate;
+            dateToInput.min = minDate;
+            dateToInput.max = maxDate;
         }
 
         function applyFilters() {
@@ -793,11 +929,35 @@
         }
 
         function updateDisplay() {
+            updateDateRangeDisplay();
             updateStats();
             updateRecentResults();
             updateFrequencyAnalysis();
             updateDetailedAnalysis();
             updatePredictionAnalysis();
+        }
+
+        function updateDateRangeDisplay() {
+            if (!filteredData || filteredData.length === 0) {
+                document.getElementById('dateRangeDisplay').innerHTML = '';
+                return;
+            }
+
+            // Get min and max dates from filtered data
+            const dates = filteredData.map(d => new Date(d.date));
+            const minDate = new Date(Math.min(...dates));
+            const maxDate = new Date(Math.max(...dates));
+
+            // Format dates
+            const formatDate = (date) => {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
+            };
+
+            const dateRangeText = 'Displaying data from ' + formatDate(minDate) + ' to ' + formatDate(maxDate) + 
+                                  ' (' + filteredData.length + ' draws)';
+            
+            document.getElementById('dateRangeDisplay').innerHTML = dateRangeText;
         }
 
         function updateStats() {
@@ -1013,14 +1173,977 @@
 
             html += '</tbody></table></div>';
 
-            // Add insights
+            // Add multiple charts section
+            html += '<div style="margin-top: 30px;">';
+            html += '<h2>Statistical Analysis & Insights</h2>';
+            html += '<div class="charts-grid">';
+            
+            // Chart 1: Number Frequency Distribution
+            html += '<div class="chart-wrapper">';
+            html += '<div class="chart-title">Top 15 Most Drawn Numbers</div>';
+            html += '<div class="chart-canvas-container"><canvas id="analysisChart1"></canvas></div>';
+            html += '<div class="chart-insight" id="insight1"></div>';
+            html += '</div>';
+            
+            // Chart 2: Even vs Odd Analysis
+            html += '<div class="chart-wrapper">';
+            html += '<div class="chart-title">Even vs Odd Distribution</div>';
+            html += '<div class="chart-canvas-container"><canvas id="analysisChart2"></canvas></div>';
+            html += '<div class="chart-insight" id="insight2"></div>';
+            html += '</div>';
+            
+            // Chart 3: Number Range Distribution
+            html += '<div class="chart-wrapper">';
+            html += '<div class="chart-title">Number Range Analysis</div>';
+            html += '<div class="chart-canvas-container"><canvas id="analysisChart3"></canvas></div>';
+            html += '<div class="chart-insight" id="insight3"></div>';
+            html += '</div>';
+            
+            // Chart 4: Consecutive Numbers Frequency
+            html += '<div class="chart-wrapper">';
+            html += '<div class="chart-title">Consecutive Numbers Pattern</div>';
+            html += '<div class="chart-canvas-container"><canvas id="analysisChart4"></canvas></div>';
+            html += '<div class="chart-insight" id="insight4"></div>';
+            html += '</div>';
+            
+            // Chart 5: Sum Range Analysis
+            html += '<div class="chart-wrapper">';
+            html += '<div class="chart-title">Sum of Winning Numbers</div>';
+            html += '<div class="chart-canvas-container"><canvas id="analysisChart5"></canvas></div>';
+            html += '<div class="chart-insight" id="insight5"></div>';
+            html += '</div>';
+            
+            // Chart 6: Last Digit Analysis
+            html += '<div class="chart-wrapper">';
+            html += '<div class="chart-title">Last Digit Frequency</div>';
+            html += '<div class="chart-canvas-container"><canvas id="analysisChart6"></canvas></div>';
+            html += '<div class="chart-insight" id="insight6"></div>';
+            html += '</div>';
+            
+            // Chart 7: Number Gaps
+            html += '<div class="chart-wrapper">';
+            html += '<div class="chart-title">Average Gap Between Numbers</div>';
+            html += '<div class="chart-canvas-container"><canvas id="analysisChart7"></canvas></div>';
+            html += '<div class="chart-insight" id="insight7"></div>';
+            html += '</div>';
+            
+            // Chart 8: Hot vs Cold Numbers
+            html += '<div class="chart-wrapper">';
+            html += '<div class="chart-title">Hot vs Cold Numbers</div>';
+            html += '<div class="chart-canvas-container"><canvas id="analysisChart8"></canvas></div>';
+            html += '<div class="chart-insight" id="insight8"></div>';
+            html += '</div>';
+            
+            html += '</div></div>';
+
+            // Add overall insights
             html += 
-                '<div class="chart-container">' +
-                    '<h3>Insights</h3>' +
-                    '<p><strong>Data Range:</strong> ' + filteredData.length + ' draws analyzed</p>' +
-                    '<p><strong>Remember:</strong> Lottery draws are random. Past results do not guarantee future outcomes.</p>' +
+                '<div class="chart-container" style="margin-top: 30px;">' +
+                    '<h3>Prediction Strategy Based on Analysis</h3>' +
+                    '<div id="overallInsights"></div>' +
                 '</div>';
             document.getElementById('detailedAnalysis').innerHTML = html;
+            
+            // Create all charts
+            createAnalysisCharts();
+        }
+
+        function createAnalysisCharts() {
+            if (!filteredData || filteredData.length === 0) return;
+            
+            // Filter only 6-digit games for number analysis
+            const sixDigitData = filteredData.filter(d => d.game_type.startsWith('6/'));
+            
+            if (sixDigitData.length === 0) {
+                document.getElementById('overallInsights').innerHTML = 
+                    '<p style="color: #6c757d;">Please select a 6-digit lotto game for detailed number analysis.</p>';
+                return;
+            }
+
+            // Chart 1: Hot Numbers
+            createHotNumbersChart(sixDigitData);
+            
+            // Chart 2: Even vs Odd
+            createEvenOddChart(sixDigitData);
+            
+            // Chart 3: Range Distribution
+            createRangeDistributionChart(sixDigitData);
+            
+            // Chart 4: Consecutive Numbers
+            createConsecutiveNumbersChart(sixDigitData);
+            
+            // Chart 5: Sum Range Analysis
+            createSumRangeChart(sixDigitData);
+            
+            // Chart 6: Last Digit Analysis
+            createLastDigitChart(sixDigitData);
+            
+            // Chart 7: Average Gap
+            createAverageGapChart(sixDigitData);
+            
+            // Chart 8: Hot vs Cold
+            createHotColdChart(sixDigitData);
+            
+            // Generate overall insights
+            generateOverallInsights(sixDigitData);
+        }
+
+        function createHotNumbersChart(data) {
+            const canvas = document.getElementById('analysisChart1');
+            if (!canvas) return;
+
+            const frequency = {};
+            data.forEach(result => {
+                result.numbers.forEach(num => {
+                    frequency[num] = (frequency[num] || 0) + 1;
+                });
+            });
+
+            const sorted = Object.entries(frequency).sort((a, b) => b[1] - a[1]).slice(0, 15);
+            
+            if (window.chart1) window.chart1.destroy();
+            
+            const ctx = canvas.getContext('2d');
+            window.chart1 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(([num]) => num),
+                    datasets: [{
+                        label: 'Times Drawn',
+                        data: sorted.map(([, count]) => count),
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        borderColor: '#000000',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            right: 10,
+                            bottom: 10,
+                            left: 10
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed.y / data.length) * 100).toFixed(1);
+                                    return 'Drawn ' + context.parsed.y + ' times (' + percentage + '% of draws)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: {
+                                padding: 5
+                            },
+                            title: { 
+                                display: true, 
+                                text: 'Frequency',
+                                padding: 10
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                padding: 5
+                            },
+                            title: { 
+                                display: true, 
+                                text: 'Number',
+                                padding: 10
+                            }
+                        }
+                    }
+                }
+            });
+
+            const topFive = sorted.slice(0, 5).map(([num]) => num).join(', ');
+            const avgFreq = (sorted.reduce((sum, [, count]) => sum + count, 0) / sorted.length).toFixed(1);
+            document.getElementById('insight1').innerHTML = 
+                '<strong>Analysis:</strong> Numbers <strong>' + topFive + '</strong> are the most frequently drawn. ' +
+                'Average frequency of top 15: ' + avgFreq + ' times. ' +
+                '<br><strong>Recommendation:</strong> Include 2-3 of these hot numbers in your selection for higher statistical coverage.';
+        }
+
+        function createEvenOddChart(data) {
+            const canvas = document.getElementById('analysisChart2');
+            if (!canvas) return;
+
+            let evenCount = 0, oddCount = 0;
+            const drawPatterns = { '6E-0O': 0, '5E-1O': 0, '4E-2O': 0, '3E-3O': 0, '2E-4O': 0, '1E-5O': 0, '0E-6O': 0 };
+            
+            data.forEach(result => {
+                let drawEven = 0, drawOdd = 0;
+                result.numbers.forEach(num => {
+                    if (num % 2 === 0) { evenCount++; drawEven++; }
+                    else { oddCount++; drawOdd++; }
+                });
+                const pattern = drawEven + 'E-' + drawOdd + 'O';
+                drawPatterns[pattern]++;
+            });
+
+            const evenPercentage = ((evenCount / (evenCount + oddCount)) * 100).toFixed(1);
+            const oddPercentage = ((oddCount / (evenCount + oddCount)) * 100).toFixed(1);
+
+            if (window.chart2) window.chart2.destroy();
+            
+            const ctx = canvas.getContext('2d');
+            window.chart2 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(drawPatterns),
+                    datasets: [{
+                        label: 'Number of Draws',
+                        data: Object.values(drawPatterns),
+                        backgroundColor: ['#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666', '#808080', '#999999'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            right: 10,
+                            bottom: 10,
+                            left: 10
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed.y / data.length) * 100).toFixed(1);
+                                    return context.parsed.y + ' draws (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { padding: 5 },
+                            title: { 
+                                display: true, 
+                                text: 'Frequency',
+                                padding: 10 
+                            }
+                        },
+                        x: { 
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45,
+                                padding: 5
+                            },
+                            title: { 
+                                display: true, 
+                                text: 'Even-Odd Pattern',
+                                padding: 10 
+                            }
+                        }
+                    }
+                }
+            });
+
+            const mostCommon = Object.entries(drawPatterns).sort((a, b) => b[1] - a[1])[0];
+            const mostCommonPct = ((mostCommon[1] / data.length) * 100).toFixed(1);
+            document.getElementById('insight2').innerHTML = 
+                '<strong>Analysis:</strong> Overall distribution is ' + evenPercentage + '% even vs ' + oddPercentage + '% odd. ' +
+                'Most common pattern: <strong>' + mostCommon[0] + '</strong> occurs in ' + mostCommonPct + '% of draws. ' +
+                '<br><strong>Recommendation:</strong> Aim for 3 even and 3 odd numbers for balanced selection, matching the most common pattern.';
+        }
+
+        function createRangeDistributionChart(data) {
+            const canvas = document.getElementById('analysisChart3');
+            if (!canvas) return;
+
+            const maxNum = getMaxNumber(data[0].game_type);
+            const third = Math.floor(maxNum / 3);
+            let low = 0, mid = 0, high = 0;
+            const rangePatterns = {};
+
+            data.forEach(result => {
+                let drawLow = 0, drawMid = 0, drawHigh = 0;
+                result.numbers.forEach(num => {
+                    if (num <= third) { low++; drawLow++; }
+                    else if (num <= third * 2) { mid++; drawMid++; }
+                    else { high++; drawHigh++; }
+                });
+                const pattern = drawLow + '-' + drawMid + '-' + drawHigh;
+                rangePatterns[pattern] = (rangePatterns[pattern] || 0) + 1;
+            });
+
+            const total = low + mid + high;
+            const lowPct = ((low / total) * 100).toFixed(1);
+            const midPct = ((mid / total) * 100).toFixed(1);
+            const highPct = ((high / total) * 100).toFixed(1);
+
+            if (window.chart3) window.chart3.destroy();
+            
+            const ctx = canvas.getContext('2d');
+            window.chart3 = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low (1-' + third + ')', 'Mid (' + (third+1) + '-' + (third*2) + ')', 'High (' + (third*2+1) + '-' + maxNum + ')'],
+                    datasets: [{
+                        data: [low, mid, high],
+                        backgroundColor: ['#000000', '#555555', '#999999'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: 20
+                    },
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + ((context.parsed / total) * 100).toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const topPattern = Object.entries(rangePatterns).sort((a, b) => b[1] - a[1])[0];
+            const topPatternPct = ((topPattern[1] / data.length) * 100).toFixed(1);
+            document.getElementById('insight3').innerHTML = 
+                '<strong>Analysis:</strong> Historical distribution shows Low: ' + lowPct + '%, Mid: ' + midPct + '%, High: ' + highPct + '%. ' +
+                'Most common pattern: <strong>' + topPattern[0] + '</strong> (Low-Mid-High) appears in ' + topPatternPct + '% of draws. ' +
+                '<br><strong>Recommendation:</strong> Select 2 numbers from each range to match the balanced distribution pattern.';
+        }
+
+        function createConsecutiveNumbersChart(data) {
+            const canvas = document.getElementById('analysisChart4');
+            if (!canvas) return;
+
+            const consecutiveCounts = { '0': 0, '1': 0, '2': 0, '3': 0, '4+': 0 };
+
+            data.forEach(result => {
+                const sorted = [...result.numbers].sort((a, b) => a - b);
+                let consecutiveCount = 0;
+                
+                for (let i = 0; i < sorted.length - 1; i++) {
+                    if (sorted[i + 1] - sorted[i] === 1) {
+                        consecutiveCount++;
+                    }
+                }
+                
+                if (consecutiveCount >= 4) consecutiveCounts['4+']++;
+                else consecutiveCounts[consecutiveCount]++;
+            });
+
+            if (window.chart4) window.chart4.destroy();
+            
+            const ctx = canvas.getContext('2d');
+            window.chart4 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['No Consecutive', '1 Pair', '2 Pairs', '3 Pairs', '4+ Pairs'],
+                    datasets: [{
+                        label: 'Frequency',
+                        data: Object.values(consecutiveCounts),
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        borderColor: '#000000',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            right: 10,
+                            bottom: 10,
+                            left: 10
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed.y / data.length) * 100).toFixed(1);
+                                    return context.parsed.y + ' draws (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { padding: 5 },
+                            title: { 
+                                display: true, 
+                                text: 'Number of Draws',
+                                padding: 10 
+                            }
+                        },
+                        x: {
+                            ticks: { padding: 5 },
+                            title: { 
+                                display: true, 
+                                text: 'Consecutive Pairs',
+                                padding: 10 
+                            }
+                        }
+                    }
+                }
+            });
+
+            const mostCommon = Object.entries(consecutiveCounts).sort((a, b) => b[1] - a[1])[0];
+            const mostCommonPct = ((mostCommon[1] / data.length) * 100).toFixed(1);
+            document.getElementById('insight4').innerHTML = 
+                '<strong>Analysis:</strong> <strong>' + mostCommon[0] + '</strong> consecutive pair(s) is most common, occurring in ' + mostCommonPct + '% of draws. ' +
+                'Only ' + ((consecutiveCounts['0'] / data.length) * 100).toFixed(1) + '% of draws have no consecutive numbers. ' +
+                '<br><strong>Recommendation:</strong> Including 1-2 consecutive numbers (e.g., 15-16 or 23-24) follows the natural pattern.';
+        }
+
+        function createSumRangeChart(data) {
+            const canvas = document.getElementById('analysisChart5');
+            if (!canvas) return;
+
+            const maxNum = getMaxNumber(data[0].game_type);
+            const sums = data.map(result => result.numbers.reduce((a, b) => a + b, 0));
+            const minSum = Math.min(...sums);
+            const maxSum = Math.max(...sums);
+            const avgSum = (sums.reduce((a, b) => a + b, 0) / sums.length).toFixed(0);
+            
+            const ranges = {};
+            const rangeSize = 20;
+            for (let i = Math.floor(minSum / rangeSize) * rangeSize; i <= maxSum; i += rangeSize) {
+                ranges[i + '-' + (i + rangeSize - 1)] = 0;
+            }
+            
+            sums.forEach(sum => {
+                const rangeStart = Math.floor(sum / rangeSize) * rangeSize;
+                const key = rangeStart + '-' + (rangeStart + rangeSize - 1);
+                if (ranges[key] !== undefined) ranges[key]++;
+            });
+
+            if (window.chart5) window.chart5.destroy();
+            
+            const ctx = canvas.getContext('2d');
+            window.chart5 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(ranges),
+                    datasets: [{
+                        label: 'Frequency',
+                        data: Object.values(ranges),
+                        borderColor: '#000000',
+                        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            right: 10,
+                            bottom: 10,
+                            left: 10
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { padding: 5 },
+                            title: { 
+                                display: true, 
+                                text: 'Frequency',
+                                padding: 10 
+                            }
+                        },
+                        x: { 
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                padding: 5
+                            },
+                            title: { 
+                                display: true, 
+                                text: 'Sum Range',
+                                padding: 10 
+                            }
+                        }
+                    }
+                }
+            });
+
+            const optimalRange = ((maxNum * 6 * 0.45).toFixed(0)) + '-' + ((maxNum * 6 * 0.55).toFixed(0));
+            document.getElementById('insight5').innerHTML = 
+                '<strong>Analysis:</strong> Sum of winning numbers ranges from ' + minSum + ' to ' + maxSum + '. ' +
+                'Average sum: <strong>' + avgSum + '</strong>. Most sums cluster around the middle range. ' +
+                '<br><strong>Recommendation:</strong> Aim for a sum between ' + optimalRange + ' for statistically typical draws. Too low or too high sums are rare.';
+        }
+
+        function createLastDigitChart(data) {
+            const canvas = document.getElementById('analysisChart6');
+            if (!canvas) return;
+
+            const lastDigits = {};
+            for (let i = 0; i <= 9; i++) lastDigits[i] = 0;
+            
+            data.forEach(result => {
+                result.numbers.forEach(num => {
+                    const lastDigit = num % 10;
+                    lastDigits[lastDigit]++;
+                });
+            });
+
+            if (window.chart6) window.chart6.destroy();
+            
+            const ctx = canvas.getContext('2d');
+            window.chart6 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(lastDigits),
+                    datasets: [{
+                        label: 'Frequency',
+                        data: Object.values(lastDigits),
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        borderColor: '#000000',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            right: 10,
+                            bottom: 10,
+                            left: 10
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = Object.values(lastDigits).reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed.y / total) * 100).toFixed(1);
+                                    return 'Appears ' + context.parsed.y + ' times (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { padding: 5 },
+                            title: { 
+                                display: true, 
+                                text: 'Frequency',
+                                padding: 10 
+                            }
+                        },
+                        x: { 
+                            ticks: { padding: 5 },
+                            title: { 
+                                display: true, 
+                                text: 'Last Digit (0-9)',
+                                padding: 10 
+                            }
+                        }
+                    }
+                }
+            });
+
+            const sortedDigits = Object.entries(lastDigits).sort((a, b) => b[1] - a[1]);
+            const topDigits = sortedDigits.slice(0, 3).map(([digit]) => digit).join(', ');
+            const leastDigits = sortedDigits.slice(-3).map(([digit]) => digit).join(', ');
+            document.getElementById('insight6').innerHTML = 
+                '<strong>Analysis:</strong> Last digits <strong>' + topDigits + '</strong> appear most frequently. ' +
+                'Least common: ' + leastDigits + '. This shows certain ending patterns are more prevalent. ' +
+                '<br><strong>Recommendation:</strong> Ensure variety in last digits. Avoid picking all numbers ending in same digits (e.g., 11, 21, 31).';
+        }
+
+        function createAverageGapChart(data) {
+            const canvas = document.getElementById('analysisChart7');
+            if (!canvas) return;
+
+            const gaps = [];
+            data.forEach(result => {
+                const sorted = [...result.numbers].sort((a, b) => a - b);
+                for (let i = 0; i < sorted.length - 1; i++) {
+                    gaps.push(sorted[i + 1] - sorted[i]);
+                }
+            });
+
+            const gapCounts = {};
+            gaps.forEach(gap => {
+                gapCounts[gap] = (gapCounts[gap] || 0) + 1;
+            });
+
+            const sortedGaps = Object.entries(gapCounts).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+
+            if (window.chart7) window.chart7.destroy();
+            
+            const ctx = canvas.getContext('2d');
+            window.chart7 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedGaps.map(([gap]) => gap),
+                    datasets: [{
+                        label: 'Frequency',
+                        data: sortedGaps.map(([, count]) => count),
+                        borderColor: '#000000',
+                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            right: 10,
+                            bottom: 10,
+                            left: 10
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { padding: 5 },
+                            title: { 
+                                display: true, 
+                                text: 'Frequency',
+                                padding: 10 
+                            }
+                        },
+                        x: { 
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkipPadding: 10,
+                                padding: 5
+                            },
+                            title: { 
+                                display: true, 
+                                text: 'Gap Size',
+                                padding: 10 
+                            }
+                        }
+                    }
+                }
+            });
+
+            const avgGap = (gaps.reduce((a, b) => a + b, 0) / gaps.length).toFixed(1);
+            const mostCommonGap = sortedGaps.sort((a, b) => b[1] - a[1])[0];
+            document.getElementById('insight7').innerHTML = 
+                '<strong>Analysis:</strong> Average gap between consecutive numbers is <strong>' + avgGap + '</strong>. ' +
+                'Most common gap: <strong>' + mostCommonGap[0] + '</strong> spaces between numbers. ' +
+                '<br><strong>Recommendation:</strong> Space your numbers naturally. Avoid clustering (gaps of 1-2 only) or extreme spacing (gaps > 15).';
+        }
+
+        function createHotColdChart(data) {
+            const canvas = document.getElementById('analysisChart8');
+            if (!canvas) return;
+
+            const frequency = {};
+            const maxNum = getMaxNumber(data[0].game_type);
+            
+            // Initialize all numbers
+            for (let i = 1; i <= maxNum; i++) {
+                frequency[i] = 0;
+            }
+            
+            data.forEach(result => {
+                result.numbers.forEach(num => {
+                    frequency[num]++;
+                });
+            });
+
+            const sorted = Object.entries(frequency).sort((a, b) => b[1] - a[1]);
+            const hot = sorted.slice(0, 10);
+            const cold = sorted.slice(-10).reverse();
+
+            if (window.chart8) window.chart8.destroy();
+            
+            const ctx = canvas.getContext('2d');
+            window.chart8 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [...hot.map(([num]) => num + ' (H)'), ...cold.map(([num]) => num + ' (C)')],
+                    datasets: [{
+                        label: 'Frequency',
+                        data: [...hot.map(([, count]) => count), ...cold.map(([, count]) => count)],
+                        backgroundColor: [...hot.map(() => '#ff0000'), ...cold.map(() => '#0000ff')],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            right: 10,
+                            bottom: 10,
+                            left: 10
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const type = context.label.includes('(H)') ? 'Hot' : 'Cold';
+                                    return type + ': ' + context.parsed.y + ' times drawn';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { padding: 5 },
+                            title: { 
+                                display: true, 
+                                text: 'Times Drawn',
+                                padding: 10 
+                            }
+                        },
+                        x: { 
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                padding: 5
+                            },
+                            title: { 
+                                display: true, 
+                                text: 'Number (H=Hot, C=Cold)',
+                                padding: 10 
+                            }
+                        }
+                    }
+                }
+            });
+
+            const hotNums = hot.slice(0, 5).map(([num]) => num).join(', ');
+            const coldNums = cold.slice(0, 5).map(([num]) => num).join(', ');
+            document.getElementById('insight8').innerHTML = 
+                '<strong>Analysis:</strong> Hot numbers (red): <strong>' + hotNums + '</strong> - frequently drawn. ' +
+                'Cold numbers (blue): <strong>' + coldNums + '</strong> - rarely drawn. ' +
+                '<br><strong>Recommendation:</strong> Balanced strategy: 3-4 hot numbers + 2-3 cold numbers. Some players prefer all hot, others mix for "due" numbers.';
+        }
+
+        function generateOverallInsights(data) {
+            const frequency = {};
+            let evenCount = 0, oddCount = 0;
+            const maxNum = getMaxNumber(data[0].game_type);
+            const third = Math.floor(maxNum / 3);
+            let low = 0, mid = 0, high = 0;
+            const sums = [];
+            
+            data.forEach(result => {
+                let sum = 0;
+                result.numbers.forEach(num => {
+                    frequency[num] = (frequency[num] || 0) + 1;
+                    sum += num;
+                    if (num % 2 === 0) evenCount++;
+                    else oddCount++;
+                    if (num <= third) low++;
+                    else if (num <= third * 2) mid++;
+                    else high++;
+                });
+                sums.push(sum);
+            });
+
+            const topNumbers = Object.entries(frequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+                .map(([num]) => num);
+
+            const avgSum = (sums.reduce((a, b) => a + b, 0) / sums.length).toFixed(0);
+            const targetSum = ((maxNum * 6 * 0.5).toFixed(0));
+
+            let insights = '';
+            insights += '<div style="background: #f8f9fa; padding: 1rem; border-left: 4px solid #000; margin-bottom: 1rem;">';
+            insights += '<h4 style="margin-top: 0;">Recommended Number Selection Strategy:</h4>';
+            insights += '<ul style="line-height: 1.8;">';
+            insights += '<li><strong>Hot Numbers (3-4):</strong> Pick from top 10 most frequent: <strong>' + topNumbers.join(', ') + '</strong></li>';
+            insights += '<li><strong>Cold Numbers (2-3):</strong> Include 2-3 less frequent numbers for "due" coverage</li>';
+            insights += '<li><strong>Even/Odd Balance:</strong> Aim for 3 even + 3 odd numbers (most common pattern)</li>';
+            insights += '<li><strong>Range Distribution:</strong> Select 2 numbers from each range (Low: 1-' + third + ', Mid: ' + (third+1) + '-' + (third*2) + ', High: ' + (third*2+1) + '-' + maxNum + ')</li>';
+            insights += '<li><strong>Consecutive Numbers:</strong> Include 1-2 consecutive pairs (e.g., 23-24 or 15-16)</li>';
+            insights += '<li><strong>Target Sum:</strong> Aim for total sum around ' + targetSum + ' (±30). Current average: ' + avgSum + '</li>';
+            insights += '<li><strong>Last Digit Variety:</strong> Avoid all numbers ending with same digit (spread 0-9)</li>';
+            insights += '<li><strong>Number Spacing:</strong> Mix close numbers (gap 1-5) with spread numbers (gap 6-15)</li>';
+            insights += '</ul>';
+            insights += '</div>';
+            insights += '<div style="background: #ffffff; padding: 1rem; border-left: 4px solid #000; margin-bottom: 1rem;">';
+            insights += '<h4 style="margin-top: 0;">Common Mistakes to Avoid:</h4>';
+            insights += '<ul style="line-height: 1.8;">';
+            insights += '<li>All consecutive numbers (1,2,3,4,5,6) - extremely rare</li>';
+            insights += '<li>All even or all odd - doesn\'t follow natural distribution</li>';
+            insights += '<li>All low or all high numbers - lacks range balance</li>';
+            insights += '<li>Numbers with same last digit (11,21,31,41,51,61)</li>';
+            insights += '<li>Sum too extreme (<100 or >' + (maxNum*6-50) + ') - statistically unlikely</li>';
+            insights += '</ul>';
+            insights += '</div>';
+            insights += '<div style="background: #f8f9fa; padding: 1rem; border-left: 4px solid #000;">';
+            insights += '<h4 style="margin-top: 0;">Pro Tips:</h4>';
+            insights += '<ul style="line-height: 1.8;">';
+            insights += '<li>Use multiple tickets with different strategies (hot-heavy vs balanced)</li>';
+            insights += '<li>Rotate your numbers weekly, don\'t stick to same combination</li>';
+            insights += '<li>Check recent 10-20 draws for emerging patterns</li>';
+            insights += '<li>Trust statistics but remember: each draw is independent</li>';
+            insights += '<li>Set a budget - play for fun, not as investment</li>';
+            insights += '</ul>';
+            insights += '</div>';
+
+            document.getElementById('overallInsights').innerHTML = insights;
+        }
+
+        function createAnalysisChart() {
+            const canvas = document.getElementById('analysisChart');
+            if (!canvas) return;
+
+            // Sort data by date
+            const sortedData = [...filteredData].sort((a, b) => 
+                new Date(a.date) - new Date(b.date)
+            );
+
+            // Group by game type if multiple games selected
+            const gameFilter = document.getElementById('gameFilter').value;
+            const datasets = [];
+
+            if (gameFilter === 'all') {
+                // Create dataset for each game type
+                const gameTypes = [...new Set(sortedData.map(d => d.game_type))];
+                const colors = ['#000000', '#333333', '#555555', '#777777', '#999999', '#BBBBBB', '#DDDDDD', '#FF0000'];
+                
+                gameTypes.forEach((gameType, index) => {
+                    const gameData = sortedData.filter(d => d.game_type === gameType);
+                    const data = gameData.map(d => ({
+                        x: d.date,
+                        y: d.jackpot / 1000000 // Convert to millions
+                    }));
+                    
+                    datasets.push({
+                        label: gameData[0].game,
+                        data: data,
+                        borderColor: colors[index % colors.length],
+                        backgroundColor: colors[index % colors.length] + '20',
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 2,
+                        pointHoverRadius: 5
+                    });
+                });
+            } else {
+                // Single game selected
+                const data = sortedData.map(d => ({
+                    x: d.date,
+                    y: d.jackpot / 1000000
+                }));
+                
+                datasets.push({
+                    label: sortedData[0].game + ' Jackpot',
+                    data: data,
+                    borderColor: '#000000',
+                    backgroundColor: '#00000020',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 6
+                });
+            }
+
+            // Destroy existing chart if any
+            if (window.analysisChartInstance) {
+                window.analysisChartInstance.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            window.analysisChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ₱' + context.parsed.y.toFixed(2) + 'M';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'month',
+                                displayFormats: {
+                                    month: 'MMM yyyy'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Jackpot (Millions ₱)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '₱' + value.toFixed(0) + 'M';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         function updatePredictionAnalysis() {
@@ -1508,9 +2631,155 @@
             html += 'Use these predictions for entertainment purposes only.';
             html += '</div>';
 
+            // Add time series chart for number frequency trends
+            html += '<div class="chart-wrapper">';
+            html += '<div class="chart-title">Number Frequency Trends Over Time</div>';
+            html += '<div class="chart-canvas-container"><canvas id="predictionChart"></canvas></div>';
+            html += '<div class="chart-insight" id="predictionInsight">';
+            html += '<strong>Analysis:</strong> This chart tracks how often each predicted number has appeared in the last 30 draws over time. ';
+            html += 'The rolling window analysis shows whether these numbers are gaining momentum (trending up), losing momentum (trending down), or maintaining steady frequency. ';
+            html += '<br><strong>How to Read:</strong> Each black line represents one predicted number. Higher percentages mean the number appeared more frequently in recent draws. ';
+            html += 'Rising trends suggest increasing "hotness", while declining trends may indicate the number is cooling off. ';
+            html += '<br><strong>Strategic Insight:</strong> Numbers with upward trends are currently "hot" and may continue appearing. Numbers with declining trends might be due for a comeback or entering a "cold" phase. ';
+            html += 'A flat line indicates consistent, stable frequency - these are reliable picks for balanced strategies.';
+            html += '</div>';
             html += '</div>';
 
             document.getElementById('predictionResults').innerHTML = html;
+            
+            // Create prediction trend chart
+            createPredictionChart(predictions);
+        }
+
+        function createPredictionChart(predictedNumbers) {
+            const canvas = document.getElementById('predictionChart');
+            if (!canvas) return;
+
+            const gameFilter = document.getElementById('gameFilter').value;
+            let gameData = filteredData.filter(r => r.game_type.startsWith('6/'));
+            
+            if (gameFilter !== 'all' && gameFilter.startsWith('6/')) {
+                gameData = gameData.filter(r => r.game_type === gameFilter);
+            }
+
+            // Sort by date
+            const sortedData = [...gameData].sort((a, b) => 
+                new Date(a.date) - new Date(b.date)
+            );
+
+            // Track frequency of predicted numbers over time (rolling window)
+            const windowSize = 30; // 30 draws rolling window
+            const datasets = [];
+
+            predictedNumbers.forEach((num, index) => {
+                const frequencyOverTime = [];
+                
+                for (let i = windowSize; i < sortedData.length; i++) {
+                    const window = sortedData.slice(i - windowSize, i);
+                    let count = 0;
+                    window.forEach(draw => {
+                        if (draw.numbers.includes(num)) count++;
+                    });
+                    
+                    frequencyOverTime.push({
+                        x: sortedData[i].date,
+                        y: (count / windowSize) * 100 // Percentage
+                    });
+                }
+
+                datasets.push({
+                    label: 'Number ' + num,
+                    data: frequencyOverTime,
+                    borderColor: '#000000',
+                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 1,
+                    pointHoverRadius: 4
+                });
+            });
+
+            // Destroy existing chart if any
+            if (window.predictionChartInstance) {
+                window.predictionChartInstance.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            window.predictionChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            right: 10,
+                            bottom: 10,
+                            left: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                padding: 10,
+                                font: {
+                                    size: 11
+                                },
+                                color: '#000000',
+                                filter: function(legendItem, chartData) {
+                                    // Show all legend items
+                                    return true;
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'month',
+                                displayFormats: {
+                                    month: 'MMM yyyy'
+                                }
+                            },
+                            ticks: {
+                                padding: 5
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                padding: 10
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                padding: 5,
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Frequency in Last 30 Draws (%)',
+                                padding: 10
+                            }
+                        }
+                    }
+                }
+            });
+        }
         function generateBalanced(gameData, maxNumber) {
             const third = Math.floor(maxNumber / 3);
             const nums = [];
@@ -1593,16 +2862,6 @@
                 default:
                     return 50;
             }
-        }   nums.push(Math.floor(Math.random() * third) + 1);
-            nums.push(Math.floor(Math.random() * third) + third + 1);
-            nums.push(Math.floor(Math.random() * third) + (third * 2) + 1);
-            
-            while (nums.length < 6) {
-                const num = Math.floor(Math.random() * maxNumber) + 1;
-                if (!nums.includes(num)) nums.push(num);
-            }
-            
-            return nums.sort((a, b) => a - b);
         }
 
         function switchTab(event, tabName) {
