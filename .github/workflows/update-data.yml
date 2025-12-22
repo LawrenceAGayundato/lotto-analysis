@@ -1,0 +1,38 @@
+name: Update PCSO Data
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Run every 6 hours
+  workflow_dispatch:  # Allow manual trigger
+  push:
+    branches: [ main ]
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        pip install requests beautifulsoup4 pandas scikit-learn xgboost tensorflow
+    
+    - name: Fetch PCSO data
+      run: python fetch_pcso_data.py
+    
+    - name: Import CSV data
+      run: python import_csv.py
+      continue-on-error: true
+    
+    - name: Commit and push if changed
+      run: |
+        git config --global user.name 'GitHub Action'
+        git config --global user.email 'action@github.com'
+        git add pcso_lotto_data.json pcso_statistics.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update PCSO data" && git push)
